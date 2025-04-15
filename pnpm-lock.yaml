@@ -14,6 +14,9 @@ importers:
       '@nuxt/eslint':
         specifier: 1.3.0
         version: 1.3.0(@vue/compiler-sfc@3.5.13)(eslint@9.24.0(jiti@2.4.2))(magicast@0.3.5)(typescript@5.8.3)(vite@6.2.6(jiti@2.4.2)(terser@5.39.0)(yaml@2.7.1))
+      '@nuxt/icon':
+        specifier: 1.12.0
+        version: 1.12.0(magicast@0.3.5)(vite@6.2.6(jiti@2.4.2)(terser@5.39.0)(yaml@2.7.1))(vue@3.5.13(typescript@5.8.3))
       '@nuxt/image':
         specifier: 1.10.0
         version: 1.10.0(db0@0.3.1)(ioredis@5.6.1)(magicast@0.3.5)
@@ -64,6 +67,9 @@ packages:
 
   '@antfu/install-pkg@1.0.0':
     resolution: {integrity: sha512-xvX6P/lo1B3ej0OsaErAjqgFYzYVcJpamjLAFLYh9vRJngBrMoUG7aVnrGTeqM7yxbyTD5p3F2+0/QUEh8Vzhw==}
+
+  '@antfu/utils@8.1.1':
+    resolution: {integrity: sha512-Mex9nXf9vR6AhcXmMrlz/HVgYYZpVGJ6YlPgwl7UnaFpnshXs6EK/oa5Gpf3CzENMjkvEx2tQtntGnb7UtSTOQ==}
 
   '@apidevtools/json-schema-ref-parser@11.9.3':
     resolution: {integrity: sha512-60vepv88RwcJtSHrD6MjIL6Ta3SOYbgfnkHb+ppAVK+o9mXprRtulx7VlRl3lN3bbvysAfCS7WMVfhUYemB0IQ==}
@@ -498,6 +504,20 @@ packages:
     resolution: {integrity: sha512-xeO57FpIu4p1Ri3Jq/EXq4ClRm86dVF2z/+kvFnyqVYRavTZmaFaUBbWCOuuTh0o/g7DSsk6kc2vrS4Vl5oPOQ==}
     engines: {node: '>=18.18'}
 
+  '@iconify/collections@1.0.538':
+    resolution: {integrity: sha512-meO8bIZ92EQsMfJFNak0XFXf/Hitpd1+omkIPBLpLQ5UBj9Shkq8EyFqJZgl3cG1onwA7hjTEdSFmwDEKAQLiw==}
+
+  '@iconify/types@2.0.0':
+    resolution: {integrity: sha512-+wluvCrRhXrhyOmRDJ3q8mux9JkKy5SJ/v8ol2tu4FVjyYvtEzkc/3pK15ET6RKg4b4w4BmTk1+gsCUhf21Ykg==}
+
+  '@iconify/utils@2.3.0':
+    resolution: {integrity: sha512-GmQ78prtwYW6EtzXRU1rY+KwOKfz32PD7iJh6Iyqw68GiKuoZ2A6pRtzWONz5VQJbp50mEjXh/7NkumtrAgRKA==}
+
+  '@iconify/vue@4.3.0':
+    resolution: {integrity: sha512-Xq0h6zMrHBbrW8jXJ9fISi+x8oDQllg5hTDkDuxnWiskJ63rpJu9CvJshj8VniHVTbsxCg9fVoPAaNp3RQI5OQ==}
+    peerDependencies:
+      vue: '>=3'
+
   '@img/sharp-darwin-arm64@0.33.4':
     resolution: {integrity: sha512-p0suNqXufJs9t3RqLBO6vvrgr5OhgbWp76s5gTRvdmxmuv9E1rcaqGUsl3l4mKVmXPkTkTErXediAui4x+8PSA==}
     engines: {glibc: '>=2.26', node: ^18.17.0 || ^20.3.0 || >=21.0.0, npm: '>=9.6.5', pnpm: '>=7.1.0', yarn: '>=3.2.0'}
@@ -747,6 +767,9 @@ packages:
         optional: true
       vite-plugin-eslint2:
         optional: true
+
+  '@nuxt/icon@1.12.0':
+    resolution: {integrity: sha512-aAEq4NQzRXmfR6ajLvA8tuD/5pxaOg/3VzIKqQS68R3D2fGD1pAitTrJAm4A3RX2TnrRMSoYoNw34IyVE5w1dg==}
 
   '@nuxt/image@1.10.0':
     resolution: {integrity: sha512-/B58GeEmme7bkmQUrXzEw8P9sJb9BkMaYZqLDtq8ZdDLEddE3P4nVya8RQPB+p4b7EdqWajpPqdy1A2ZPLev/A==}
@@ -2354,6 +2377,10 @@ packages:
     resolution: {integrity: sha512-oahGvuMGQlPw/ivIYBjVSrWAfWLBeku5tpPE2fOPLi+WHffIWbuh2tCjhyQhTBPMf5E9jDEH4FOmTYgYwbKwtQ==}
     engines: {node: '>=18'}
 
+  globals@15.15.0:
+    resolution: {integrity: sha512-7ACyT3wmyp3I61S4fG682L0VA2RGD9otkqGJIwNUMF1SWUombIIk+af1unuDYgMm082aHYwD+mzJvv9Iu8dsgg==}
+    engines: {node: '>=18'}
+
   globals@16.0.0:
     resolution: {integrity: sha512-iInW14XItCXET01CQFqudPOWP2jYMl7T+QRQT+UNcR/iQncN/F0UNpgd76iFkBPgNQb4+X3LV9tLJYzwh+Gl3A==}
     engines: {node: '>=18'}
@@ -2694,6 +2721,9 @@ packages:
   koa@2.16.1:
     resolution: {integrity: sha512-umfX9d3iuSxTQP4pnzLOz0HKnPg0FaUUIKcye2lOiz3KPu1Y3M3xlz76dISdFPQs37P9eJz1wUpcTS6KDPn9fA==}
     engines: {node: ^4.8.4 || ^6.10.1 || ^7.10.1 || >= 8.1.4}
+
+  kolorist@1.8.0:
+    resolution: {integrity: sha512-Y+60/zizpJ3HRH8DCss+q95yr6145JXZo46OTpFvDZWLfRCE4qChOyk1b26nMaNpfHHgxagk9dXT5OP0Tfe+dQ==}
 
   launch-editor@2.10.0:
     resolution: {integrity: sha512-D7dBRJo/qcGX9xlvt/6wUYzQxjh5G1RvZPgPv8vi4KRU99DVQL/oW7tnVOCCTm2HGeo3C5HvGE5Yrh6UBoZ0vA==}
@@ -4324,6 +4354,8 @@ snapshots:
       package-manager-detector: 0.2.11
       tinyexec: 0.3.2
 
+  '@antfu/utils@8.1.1': {}
+
   '@apidevtools/json-schema-ref-parser@11.9.3':
     dependencies:
       '@jsdevtools/ono': 7.1.3
@@ -4735,6 +4767,30 @@ snapshots:
 
   '@humanwhocodes/retry@0.4.2': {}
 
+  '@iconify/collections@1.0.538':
+    dependencies:
+      '@iconify/types': 2.0.0
+
+  '@iconify/types@2.0.0': {}
+
+  '@iconify/utils@2.3.0':
+    dependencies:
+      '@antfu/install-pkg': 1.0.0
+      '@antfu/utils': 8.1.1
+      '@iconify/types': 2.0.0
+      debug: 4.4.0
+      globals: 15.15.0
+      kolorist: 1.8.0
+      local-pkg: 1.1.1
+      mlly: 1.7.4
+    transitivePeerDependencies:
+      - supports-color
+
+  '@iconify/vue@4.3.0(vue@3.5.13(typescript@5.8.3))':
+    dependencies:
+      '@iconify/types': 2.0.0
+      vue: 3.5.13(typescript@5.8.3)
+
   '@img/sharp-darwin-arm64@0.33.4':
     optionalDependencies:
       '@img/sharp-libvips-darwin-arm64': 1.0.2
@@ -5076,6 +5132,28 @@ snapshots:
       - typescript
       - utf-8-validate
       - vite
+
+  '@nuxt/icon@1.12.0(magicast@0.3.5)(vite@6.2.6(jiti@2.4.2)(terser@5.39.0)(yaml@2.7.1))(vue@3.5.13(typescript@5.8.3))':
+    dependencies:
+      '@iconify/collections': 1.0.538
+      '@iconify/types': 2.0.0
+      '@iconify/utils': 2.3.0
+      '@iconify/vue': 4.3.0(vue@3.5.13(typescript@5.8.3))
+      '@nuxt/devtools-kit': 2.4.0(magicast@0.3.5)(vite@6.2.6(jiti@2.4.2)(terser@5.39.0)(yaml@2.7.1))
+      '@nuxt/kit': 3.16.2(magicast@0.3.5)
+      consola: 3.4.2
+      local-pkg: 1.1.1
+      mlly: 1.7.4
+      ohash: 2.0.11
+      pathe: 2.0.3
+      picomatch: 4.0.2
+      std-env: 3.9.0
+      tinyglobby: 0.2.12
+    transitivePeerDependencies:
+      - magicast
+      - supports-color
+      - vite
+      - vue
 
   '@nuxt/image@1.10.0(db0@0.3.1)(ioredis@5.6.1)(magicast@0.3.5)':
     dependencies:
@@ -6828,6 +6906,8 @@ snapshots:
 
   globals@14.0.0: {}
 
+  globals@15.15.0: {}
+
   globals@16.0.0: {}
 
   globby@14.1.0:
@@ -7218,6 +7298,8 @@ snapshots:
       vary: 1.1.2
     transitivePeerDependencies:
       - supports-color
+
+  kolorist@1.8.0: {}
 
   launch-editor@2.10.0:
     dependencies:

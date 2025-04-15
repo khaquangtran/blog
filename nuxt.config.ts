@@ -18,7 +18,16 @@ export default defineNuxtConfig({
     '@nuxtjs/tailwindcss',
     '@nuxtjs/google-fonts',
     '@nuxt/image',
+    '@nuxt/icon',
   ],
+
+  app: {
+    head: {
+      htmlAttrs: {
+        lang: 'en',
+      },
+    },
+  },
 
   // @nuxt/google-fonts
   googleFonts: {
