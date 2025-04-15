@@ -12,5 +12,26 @@ export default defineNuxtConfig({
     },
   },
 
-  modules: ['nitro-cloudflare-dev', '@nuxt/eslint'],
+  modules: [
+    'nitro-cloudflare-dev',
+    '@nuxt/eslint',
+    '@nuxtjs/tailwindcss',
+    '@nuxtjs/google-fonts',
+    '@nuxt/image',
+  ],
+
+  // @nuxt/google-fonts
+  googleFonts: {
+    families: {
+      Lato: {
+        wght: [400],
+        ital: [400],
+      },
+      Merriweather: [400, 500, 600, 700],
+    },
+  },
+
+  // Use global.css
+  css: ['./assets/css/global.css'],
 })
+
