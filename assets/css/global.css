@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@theme {
+  --font-sans: 'Lato', sans-serif;
+  --font-serif: 'Merriweather', serif;
+}
+
+@layer base {
+  * {
+    @apply font-sans tracking-tighter;
+    text-shadow:
+      0 0 1px rgba(0, 0, 0, 0.1),
+      1px 1px 3px rgba(0, 0, 0, 0.3),
+      -1px -1px 2px rgba(0, 0, 0, 0.1);
+  }
+
+  a {
+    @apply hover:bg-black hover:text-orange-400;
+  }
+
+  h1,
+  h2 {
+    @apply font-serif tracking-tighter;
+  }
+}
+
+@layer components {
+  .link-active {
+    @apply bg-black text-orange-400;
+  }
+
+  .title {
+    @apply font-serif tracking-tighter text-4xl font-bold;
+  }
+
+  .subtitle {
+    @apply font-sans tracking-tighter text-3xl;
+  }
+
+  .news-title {
+    @apply font-serif tracking-tighter text-xl font-semibold;
+  }
+
+  .news-description {
+    @apply font-sans tracking-tighter;
+  }
+}
