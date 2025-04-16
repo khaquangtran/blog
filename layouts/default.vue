@@ -63,7 +63,7 @@ useSeoMeta({
     <div class="mx-auto max-w-2xl flex-1">
       <slot />
     </div>
-    <footer class="mt-10 pt-5 pb-10 border-t border-t-gray-200 bg-gray-200">
+    <footer class="mt-10 pt-16 pb-36 border-t border-t-gray-200 bg-gray-200">
       <div class="mx-auto max-w-2xl px-2 sm:px-0">
         <div class="grid grid-cols-2">
           <div>

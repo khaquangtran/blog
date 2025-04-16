@@ -178,11 +178,11 @@ const projects = ref([
           <h1 class="font-bold">{{ education.uni }}</h1>
           <h2 class="text-xs font-serif">{{ education.study }}</h2>
           <p class="block sm:hidden mt-2 description">
-            {{ education.uni }}
+            {{ education.description }}
           </p>
         </div>
         <p class="hidden sm:block description">
-          {{ education.uni }}
+          {{ education.description }}
         </p>
       </div>
     </div>
