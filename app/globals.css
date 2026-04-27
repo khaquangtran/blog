@@ -13,10 +13,11 @@
   --font-mono: var(--font-typewriter-mono);
 }
 
-@media (prefers-color-scheme: no-preference) {
+@media (prefers-color-scheme: dark) {
   :root {
-    --background: #0b0b0b;
-    --foreground: #e5e5e5;
+    --background: #121212;
+    --foreground: #e0e0e0;
+    --divide: #333333;
   }
 }
 

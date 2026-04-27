@@ -4,7 +4,6 @@ import matter from 'gray-matter';
 import { MDXRemote } from "next-mdx-remote/rsc";
 import Figure from "@/app/components/figure";
 import Link from "next/link";
-import ArrowLeft from "arrow-left.svg";
 import Image from "next/image";
 
 const components = { Figure }
@@ -28,13 +27,13 @@ export default async function Page({ params }: { params: { year: string; slug: s
                 <div className={"py-5 border-btm"}>
                     <Link href={"/"} className={"link"}>
                         <div className={"flex items-center gap-2"}>
-                            <Image src={"/arrow-left.svg"} alt={"M"} width={12} height={12} />
+                            <Image src={"/arrow-left.svg"} alt={"arrow-left"} width={12} height={12} className={"invert-100"} />
                             <span>Home</span>
                         </div>
                     </Link>
                     <div className={"mt-6"}>
-                        <h1 className={"font-bold"}>Designing Idempotent APIs</h1>
-                        <p className={"mt-2"}>April 26, 2026</p>
+                        <h1 className={"font-bold"}>{data.title}</h1>
+                        <p className={"mt-2"}>{data.date}</p>
                     </div>
                 </div>
             </header>

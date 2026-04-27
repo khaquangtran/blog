@@ -94,7 +94,9 @@ export default function Home() {
                     <p>Thoughts and notes about Software Engineering, Backend Systems, Infrastructure, Hardware, and books.</p>
                 </div>
                 <Link href={"mailto:kha.tran.swe@gmail.com"}>
-                    <p className={"mt-1 link font-bold"}>kha.tran.swe@gmail.com</p>
+                    <span className={"mt-1 link font-bold"}>
+                        kha.tran.swe@gmail.com
+                    </span>
                 </Link>
             </div>
         </header>
@@ -111,7 +113,7 @@ export default function Home() {
                                               <span>{item.month}</span>
                                               <span>{item.day}</span>
                                           </div>
-                                          <div className={"flex items-start justify-center"}>
+                                          <div className={"flex items-start justify-center text-[#A0A0A0]"}>
                                               <span>——</span>
                                           </div>
                                           <Link href={`/${article.year}/${item.slug}`} className={"link"}>
