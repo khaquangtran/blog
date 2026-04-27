@@ -9,6 +9,7 @@ export default function Home() {
                     day: 26,
                     month: 'Apr',
                     title: 'Designing Idempotent APIs',
+                    slug: 'designing-idempotent-apis',
                 },
                 {
                     day: 20,
@@ -88,11 +89,11 @@ export default function Home() {
       <div className={"font-mono"}>
         <header className={"max-w-2xl mx-auto px-4"}>
             <div className={"py-6 border-btm "}>
-                <h1 className={"font-bold"}>Kha</h1>
+                <h2 className={"font-bold"}>Kha</h2>
                 <div className={"max-w-lg mt-2"}>
                     <p>Thoughts and notes about Software Engineering, Backend Systems, Infrastructure, Hardware, and books.</p>
                 </div>
-                <Link href={"/"}>
+                <Link href={"mailto:kha.tran.swe@gmail.com"}>
                     <p className={"mt-1 link font-bold"}>kha.tran.swe@gmail.com</p>
                 </Link>
             </div>
@@ -113,7 +114,7 @@ export default function Home() {
                                           <div className={"flex items-start justify-center"}>
                                               <span>——</span>
                                           </div>
-                                          <Link href={"/"} className={"link"}>
+                                          <Link href={`/${article.year}/${item.slug}`} className={"link"}>
                                               <p>{item.title}</p>
                                           </Link>
                                       </div>

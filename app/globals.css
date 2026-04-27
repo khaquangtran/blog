@@ -4,6 +4,7 @@
   --background: #ffffff;
   --foreground: #111111;
   --muted: #666666;
+  --divide: #e8e8e8;
 }
 
 @theme inline {
@@ -29,6 +30,10 @@ body {
 
 @layer base {
   h1 {
+    @apply text-2xl;
+  }
+
+  h2 {
     @apply text-xl;
   }
 
