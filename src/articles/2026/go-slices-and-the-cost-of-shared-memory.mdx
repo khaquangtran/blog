@@ -1,0 +1,243 @@
+---
+title: "#2. Go Slices and the Trap of Shared Memory"
+date: May 07, 2026
+label: Golang
+minRead: 14
+description: Go slices look simple, but their shared-memory behavior can quietly cause unexpected mutations, hidden memory leaks, and some of the most subtle bugs in production Go systems. In this post, we’ll break down how slices work under the hood and examine the real trap of shared memory in Go.
+---
+
+## 1. The Bug Nobody Expected
+
+Go slices look simple on the surface, but their shared-memory behavior can quietly introduce unexpected mutations and some of the most subtle bugs in production Go systems. Before diving into internals, let’s start with a harmless-looking example.
+
+```go showLineNumbers
+alice := []int{1, 2, 3, 4, 5}
+bob := alice[:2]
+
+bob[0] = 999
+
+fmt.Println(alice)
+// [999 2 3 4 5]
+```
+
+At first, this behavior already feels surprising. Even though `bob` looks like a separate slice, modifying it also mutates `alice`.
+
+This happens because both slices still share the same underlying memory.
+
+But things become even more confusing once `append` enters the picture.
+
+```go showLineNumbers
+bob = append(bob, 1000)
+
+fmt.Println(bob)
+// [999 2 1000]
+fmt.Println(alice)
+// [999 2 1000 4 5]
+```
+
+Appending to `bob` unexpectedly overwrites the third element of `alice`.
+
+At first glance, append feels like it should create new memory automatically. But in reality, whether a slice reallocates or mutates shared memory depends on something much more subtle: capacity.
+
+This shared-memory behavior is the source of many unexpected bugs in Go systems, especially once slicing and append start interacting together.
+
+## 2. Slices Under the Hood
+
+To understand why the previous bug happened, we first need to understand what a slice actually is internally.
+
+Under the hood, slices do not store data themselves. The actual data still lives inside an array — commonly referred to as the backing array.
+
+A slice is merely a lightweight descriptor that provides a view into that array. Internally, a slice consists of three pieces of information: a pointer, a length and a capacity.
+
+```plaintext
++-----------------------------------------------------------+
+|                     Backing Array                         |
+|-----------------------------------------------------------|
+|  10  |  20  |  30  |  40  |  50  |  60  |  70  |  80      |
++-----------------------------------------------------------+
+          ^
+          |
+          | pointer
+          |
++-------------------------------+
+|            Slice              |
+|-------------------------------|
+| pointer  -> index 2 (30)      |
+| length   -> 3                 |
+| capacity -> 6                 |
++-------------------------------+
+
+Visible slice: [30 40 50]
+Available growth: [30 40 50 60 70 80]
+```
+
+The pointer determines where the slice begins inside the backing array. The length defines how many elements are currently accessible, while the capacity determines how far the slice can grow before a new backing array must be allocated.
+
+This distinction is the reason slices are lightweight and efficient to pass around. Copying a slice value does not duplicate the underlying data — it only copies the descriptor. Multiple slices can still reference the same backing array, which is exactly why modifying `bob` unexpectedly changed `alice` in the previous example.
+
+Before we dive deeper into slicing behavior, we first need to understand one of the most important parts of slice internals: capacity.
+
+## 3. Capacity: The Hidden Boundary
+
+The weird append behavior from earlier happens because slices inherit something invisible: capacity.
+
+```go showLineNumbers
+alice := []int{1,2,3,4,5}
+bob := `alice`[:2]
+
+fmt.Println(len(bob), cap(bob))
+// 2 4
+```
+
+Capacity determines how much a slice can grow before Go must allocate a new backing array.
+
+When append exceeds the current capacity, Go allocates a new backing array, copies the existing elements, and updates the slice to point to the new memory location.
+
+```go showLineNumbers
+x := []int{1, 2}
+
+fmt.Println(len(x), cap(x)) // 2 2
+
+x = append(x, 3)
+
+fmt.Println(len(x), cap(x))
+// len grows to 3
+// capacity grows as Go reallocates
+```
+
+At first glance, capacity may feel like an implementation detail. But it is actually the hidden boundary that determines one of the most surprising behaviors of slices:
+
+**Will append reuse shared memory, or allocate new memory?**
+
+As long as capacity is still available, append reuses the same backing array. Once capacity is exhausted, Go allocates a new one and detaches the slice from the original memory.
+
+This subtle distinction is exactly why append sometimes mutates another slice unexpectedly — and sometimes does not.
+
+The easiest way to understand this is to go back to the first example and see what actually happened during slicing.
+
+## 4. The Real Trap: Slicing
+
+Remember the first example?
+
+```go showLineNumbers
+alice := []int{1, 2, 3, 4, 5}
+bob := alice[:2]
+
+fmt.Println(bob) // [1 2]
+fmt.Println(cap(alice), cap(bob))
+// 5 5
+```
+
+At first glance, `bob` looks like an independent slice containing only [1 2].
+
+But slices do not own memory. They are merely descriptors pointing into a backing array.
+
+Since `bob` was created from `alice`, both slices still reference the same underlying memory.
+
+More importantly, `bob` also inherits the remaining capacity of `alice`.
+
+Its internal view roughly looks like this:
+
+```plaintext
+backing array
+[1  2  3  4 5]
+^
+|
+alice -> (ptr:0, len:5, cap:5)
+bob   -> (ptr:0, len:5, cap:5)
+```
+
+However, slicing does not always begin at the start of the backing array.
+
+Consider this example:
+
+```go showLineNumbers
+alice := []int{1, 2, 3, 4, 5}
+bob := alice[2:4]
+
+fmt.Println(bob) // [3 4]
+fmt.Println(len(bob), cap(bob))
+// 2 5
+```
+
+Unlike the previous example, bob no longer starts at the first element.
+
+Internally, the slice pointer now moves forward and points directly to the third element of the backing array:
+
+```plaintext
+backing array
+[1  2  3  4 5]
+^      ^
+|      |
+alice -> (ptr:0, len:5, cap:5)
+      bob   -> (ptr:2, len:2, cap:5)
+```
+
+Even though `bob` only exposes two elements, it still has access to the unused capacity of the backing array.
+
+That means mutations are shared.
+
+```go showLineNumbers
+bob[0] = 1000
+
+fmt.Println(alice)
+// [1000 2 3 4 5]
+```
+
+Since both slices point to the same backing array, changing `bob` also changes `alice`.
+
+But the more subtle behavior appears once append enters the picture.
+
+```go showLineNumbers
+bob = append(bob, 3000)
+
+fmt.Println(bob)
+// [1000 2 3000]
+fmt.Println(alice)
+// [1000 2 3000 4 5]
+```
+
+Appending to `bob` unexpectedly overwrites the third element of `alice`.
+
+Why?
+
+Because `bob` still had spare capacity inherited from `alice`.
+
+Instead of allocating a new backing array, Go reused the existing memory and wrote 3000 directly into the next available slot:
+
+```plaintext
+backing array
+[1000  2  3000  4 5]
+^
+|
+alice -> (ptr:0, len:5, cap:5)
+bob   -> (ptr:0, len:3, cap:5)
+```
+
+This is one of the most common slice traps in Go: a subslice may look isolated, but it can still mutate the original slice if capacity is shared.
+
+### Restricting Capacity
+
+If a subslice is expected to grow independently, we can intentionally restrict its capacity using the full slice expression:
+
+```go showLineNumbers
+alice := []int{1, 2, 3, 4, 5}
+
+bob := alice[2:4:4]
+
+fmt.Println(len(bob), cap(bob))
+// 2 2
+
+bob = append(bob, 6)
+
+fmt.Println(bob)   // [3 4 6]
+fmt.Println(alice) // [1 2 3 4 5]
+```
+
+By limiting the capacity to match the slice length, append is forced to allocate a new backing array instead of reusing `alice`’s memory.
+
+This makes `bob` effectively independent.
+
+The behavior may feel surprising at first, but it is ultimately a trade-off. Slices were designed to be lightweight and efficient, avoiding unnecessary allocations by sharing memory whenever possible.
+
+That efficiency is also what makes slice bugs surprisingly easy to introduce.

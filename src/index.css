@@ -1,0 +1,97 @@
+@import url('https://cdn.jsdelivr.net/gh/vsalvino/computer-modern@main/fonts/typewriter.css');
+
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+
+:root {
+}
+
+code[data-theme*=" "],
+code[data-theme*=" "] span {
+  color: var(--shiki-light);
+  background-color: var(--shiki-light-bg);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+  }
+
+  code[data-theme*=" "],
+  code[data-theme*=" "] span {
+    color: var(--shiki-dark);
+    background-color: var(--shiki-dark-bg);
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'Computer Modern Typewriter', monospace;
+    @apply bg-white text-black dark:bg-black dark:text-white;
+  }
+
+  h1 { @apply text-3xl; }
+
+  h2 { @apply text-2xl; }
+}
+
+@layer components {
+  [data-rehype-pretty-code-figure] {
+    @apply relative my-5 overflow-hidden rounded-sm border border-zinc-300 dark:border-zinc-700;
+  }
+
+  [data-rehype-pretty-code-title] {
+    @apply border-b border-zinc-300 py-1.5 px-3 dark:border-zinc-700;
+  }
+
+  code[data-line-numbers] {
+    counter-reset: line;
+  }
+
+  code[data-line-numbers] > [data-line]::before {
+    counter-increment: line;
+    content: counter(line);
+
+    @apply mr-6 pr-3 inline-block w-8 text-right border-r border-zinc-300 dark:border-zinc-700 text-black dark:text-zinc-500;
+  }
+
+
+  [data-rehype-pretty-code-title]::before {
+    content: "File: ";
+    @apply text-black dark:text-zinc-600;
+  }
+
+  [data-rehype-pretty-code-title]::after {
+    content: attr(data-language);
+    @apply absolute top-1.5 right-3.5 text-black dark:text-zinc-500;
+  }
+}
+
+article h2 {
+  @apply mb-4;
+}
+
+article h2:not(:first-of-type) {
+  @apply mt-8;
+}
+
+article p {
+  @apply mb-5 text-base;
+}
+
+article pre {
+  @apply overflow-x-auto p-2;
+}
+
+article pre code {
+  @apply leading-5.5;
+  font-family: "Computer Modern Typewriter", monospace;
+}
+
+article p code {
+  font-family: "Computer Modern Typewriter", monospace;
+  @apply px-1 border border-zinc-300 dark:border-zinc-800 rounded-md;
+}
