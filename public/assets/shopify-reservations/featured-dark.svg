@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 560" role="img" aria-labelledby="title desc">
+  <title id="title">From separate reservation state to one transaction</title>
+  <desc id="desc">Redis reservation state and a MySQL inventory ledger move into one MySQL transaction boundary.</desc>
+  <rect width="1200" height="560" fill="#101a1a"/>
+  <path d="M42 52h1116M42 508h1116" stroke="#354443" stroke-width="2"/>
+  <g fill="#aab7b0" font-family="monospace" font-size="17" letter-spacing="2"><text x="54" y="38">FIELD NOTE / INVENTORY</text><text x="1146" y="38" text-anchor="end">01 — 03</text></g>
+  <g fill="#172323" stroke="#bac7bf" stroke-width="2"><rect x="72" y="132" width="300" height="110"/><rect x="72" y="292" width="300" height="110"/><rect x="726" y="132" width="402" height="270"/></g>
+  <g fill="#ecebe3" font-family="monospace"><text x="104" y="174" font-size="27">Redis</text><text x="104" y="213" font-size="14" fill="#aab7b0" letter-spacing="1">RESERVATION COUNTER</text><text x="104" y="334" font-size="27">MySQL</text><text x="104" y="373" font-size="14" fill="#aab7b0" letter-spacing="1">INVENTORY LEDGER</text><text x="774" y="178" font-size="28">MySQL</text><text x="774" y="216" font-size="14" fill="#aab7b0" letter-spacing="1">ONE TRANSACTION BOUNDARY</text></g>
+  <circle cx="95" cy="157" r="7" fill="#e77d5e"/><circle cx="95" cy="317" r="7" fill="#86afbb"/>
+  <path d="M410 187h238" fill="none" stroke="#e77d5e" stroke-width="3"/><path d="m630 175 14 12-14 12" fill="none" stroke="#e77d5e" stroke-width="3"/>
+  <g fill="#aab7b0" font-family="monospace" text-anchor="middle"><text x="530" y="160" font-size="14" letter-spacing="1">ONE ATOMIC</text><text x="530" y="222" font-size="14" letter-spacing="1">BOUNDARY</text></g>
+  <path d="M774 253h304M926 253v104" stroke="#60716c" stroke-width="2"/>
+  <rect x="774" y="274" width="136" height="81" fill="#202d2b"/><rect x="934" y="274" width="144" height="81" fill="#202d2b"/>
+  <g fill="#aab7b0" font-family="monospace" font-size="12" text-anchor="middle"><text x="842" y="310">RESERVATION</text><text x="842" y="330">UNITS</text><text x="1006" y="310">INVENTORY</text><text x="1006" y="330">LEDGER</text></g>
+  <g fill="#aab7b0" font-family="monospace" font-size="14" letter-spacing="1"><text x="72" y="463">SEPARATE STATE</text><text x="726" y="463">SHARED TRANSACTION</text></g>
+  <path d="M236 458h434" stroke="#e77d5e" stroke-width="2"/>
+</svg>

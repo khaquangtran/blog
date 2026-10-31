@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" role="img" aria-labelledby="title desc">
+  <title id="title">The real-time data path</title><desc id="desc">Events move from Kafka into Flink and Pinot, are archived in HDFS, and queried with Presto.</desc>
+  <rect width="1200" height="520" fill="#101b1e"/>
+  <path d="M36 54h1128M36 474h1128" stroke="#405154" stroke-width="2"/>
+  <g fill="#aab7b0" font-family="monospace" font-size="15" letter-spacing="2"><text x="42" y="38">01 / THE PLATFORM PATH</text><text x="1158" y="38" text-anchor="end">EVENT → COMPUTE → SERVE</text></g>
+  <g stroke="#ecebe3" stroke-width="2" fill="#152327">
+    <rect x="62" y="150" width="200" height="132"/><rect x="356" y="150" width="200" height="132"/><rect x="650" y="150" width="200" height="132"/><rect x="944" y="150" width="200" height="132"/>
+  </g>
+  <g fill="#ecebe3" font-family="monospace" text-anchor="middle"><text x="162" y="198" font-size="23">PRODUCERS</text><text x="162" y="230" font-size="13" fill="#aab7b0">services · apps · CDC</text><text x="456" y="198" font-size="23">KAFKA</text><text x="456" y="230" font-size="13" fill="#aab7b0">durable event log</text><text x="750" y="198" font-size="23">FLINK</text><text x="750" y="230" font-size="13" fill="#aab7b0">stateful computation</text><text x="1044" y="198" font-size="23">PINOT</text><text x="1044" y="230" font-size="13" fill="#aab7b0">low-latency OLAP</text></g>
+  <g fill="none" stroke="#e77d5e" stroke-width="3"><path d="M262 216h82m212 0h82m212 0h82"/><path d="M333 205l12 11-12 11M627 205l12 11-12 11M921 205l12 11-12 11"/></g>
+  <path d="M456 282v48h124v27" fill="none" stroke="#80c7a3" stroke-width="2" stroke-dasharray="7 8"/><path d="M573 349l7 8 7-8" fill="none" stroke="#80c7a3" stroke-width="2"/>
+  <rect x="560" y="357" width="380" height="72" fill="#24373a" stroke="#405154" stroke-width="2"/>
+  <g fill="#ecebe3" font-family="monospace" text-anchor="middle"><text x="750" y="386" font-size="18" letter-spacing="2">HDFS / PARQUET</text><text x="750" y="410" font-size="12" fill="#aab7b0">ARCHIVE · BACKFILL · HISTORICAL SOURCE</text></g>
+  <path d="M1038 357v-75m12 75v-75" fill="none" stroke="#e77d5e" stroke-width="2"/><path d="M1031 291l7-9 7 9M1043 348l7 9 7-9" fill="none" stroke="#e77d5e" stroke-width="2"/><rect x="944" y="357" width="200" height="72" fill="#24373a" stroke="#405154" stroke-width="2"/>
+  <g fill="#ecebe3" font-family="monospace" text-anchor="middle"><text x="1044" y="386" font-size="17">PRESTO</text><text x="1044" y="409" font-size="12" fill="#aab7b0">SQL QUERY ACCESS</text></g>
+  <g fill="#e77d5e" font-family="monospace" font-size="12" letter-spacing="1"><text x="62" y="452">RAW EVENTS</text><text x="356" y="452">ROUTING + RETENTION</text><text x="650" y="452">STATE + WINDOWS</text><text x="944" y="452">INDEXED SEGMENTS</text></g>
+</svg>

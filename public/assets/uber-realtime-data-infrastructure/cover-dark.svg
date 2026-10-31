@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 560" role="img" aria-labelledby="title desc">
+  <title id="title">Real-time data infrastructure</title>
+  <desc id="desc">A stream of small event marks flows through Kafka, Flink, and Pinot, with a branch to historical storage.</desc>
+  <rect width="1400" height="560" fill="#101a1a"/>
+  <path d="M48 48h1304M48 512h1304" stroke="#354443" stroke-width="2"/>
+  <g fill="#aab7b0" font-family="monospace" font-size="20" letter-spacing="3">
+    <text x="62" y="87">REAL-TIME DATA / SYSTEM MAP</text>
+    <text x="1338" y="87" text-anchor="end">KAFKA · FLINK · PINOT</text>
+  </g>
+  <g fill="#e77d5e">
+    <circle cx="112" cy="276" r="7"/><circle cx="146" cy="276" r="7"/><circle cx="180" cy="276" r="7"/><circle cx="214" cy="276" r="7"/>
+    <circle cx="248" cy="276" r="7"/><circle cx="282" cy="276" r="7"/><circle cx="316" cy="276" r="7"/>
+  </g>
+  <path d="M330 276h93m92 0h110m102 0h112m102 0h122" fill="none" stroke="#e77d5e" stroke-width="3"/>
+  <path d="m415 265 12 11-12 11M719 265l12 11-12 11M1025 265l12 11-12 11" fill="none" stroke="#e77d5e" stroke-width="3"/>
+  <g stroke="#bac7bf" stroke-width="2" fill="#172323">
+    <rect x="428" y="191" width="178" height="170"/>
+    <rect x="735" y="191" width="178" height="170"/>
+    <rect x="1041" y="191" width="210" height="170"/>
+  </g>
+  <g fill="#ecebe3" font-family="monospace" text-anchor="middle">
+    <text x="517" y="247" font-size="26" letter-spacing="2">KAFKA</text>
+    <text x="824" y="247" font-size="26" letter-spacing="2">FLINK</text>
+    <text x="1146" y="247" font-size="26" letter-spacing="2">PINOT</text>
+    <text x="517" y="287" font-size="14" fill="#aab7b0">EVENT LOG</text>
+    <text x="824" y="287" font-size="14" fill="#aab7b0">STATE + COMPUTE</text>
+    <text x="1146" y="287" font-size="14" fill="#aab7b0">LIVE ANALYTICS</text>
+  </g>
+  <g fill="#78928d">
+    <rect x="469" y="316" width="15" height="15"/><rect x="492" y="316" width="15" height="15"/><rect x="515" y="316" width="15" height="15"/><rect x="538" y="316" width="15" height="15"/><rect x="561" y="316" width="15" height="15"/>
+    <rect x="778" y="316" width="15" height="15"/><rect x="801" y="316" width="15" height="15"/><rect x="824" y="316" width="15" height="15"/><rect x="847" y="316" width="15" height="15"/><rect x="870" y="316" width="15" height="15"/>
+    <rect x="1080" y="316" width="15" height="15"/><rect x="1103" y="316" width="15" height="15"/><rect x="1126" y="316" width="15" height="15"/><rect x="1149" y="316" width="15" height="15"/><rect x="1172" y="316" width="15" height="15"/>
+  </g>
+  <path d="M517 361v60h627v-60" fill="none" stroke="#60716c" stroke-width="2" stroke-dasharray="6 8"/>
+  <path d="M824 361v60" fill="none" stroke="#60716c" stroke-width="2" stroke-dasharray="6 8"/>
+  <rect x="648" y="409" width="366" height="64" fill="#202d2b" stroke="#485855" stroke-width="2"/>
+  <g fill="#aab7b0" font-family="monospace" text-anchor="middle">
+    <text x="831" y="437" font-size="16" letter-spacing="2">HDFS / PARQUET</text>
+    <text x="831" y="459" font-size="12">ARCHIVE · REPLAY · HISTORY</text>
+  </g>
+  <g fill="#aab7b0" font-family="monospace" font-size="14" letter-spacing="2">
+    <text x="62" y="473">FRESHNESS</text><text x="62" y="495" fill="#e77d5e">SECONDS → QUERYABLE</text>
+  </g>
+</svg>

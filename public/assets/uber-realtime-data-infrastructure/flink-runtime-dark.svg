@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 640" role="img" aria-labelledby="title desc">
+  <title id="title">Flink job planning, execution, and recovery</title>
+  <desc id="desc">Calcite compiles a SQL query into a Flink job. The job reads Kafka, computes stateful windows, writes to Pinot, and checkpoints source offsets with operator state.</desc>
+  <rect width="1200" height="640" fill="#101b1e"/>
+  <path d="M36 54h1128M36 598h1128" stroke="#405154" stroke-width="2"/>
+  <g fill="#aab7b0" font-family="monospace" font-size="16" letter-spacing="2"><text x="42" y="38">03 / FLINK · PLAN, RUN, RECOVER</text><text x="1158" y="38" text-anchor="end">SQL IS THE FRONT DOOR</text></g>
+  <g fill="#152327" stroke="#405154" stroke-width="2"><rect x="54" y="100" width="210" height="96"/><rect x="326" y="100" width="220" height="96"/><rect x="608" y="100" width="220" height="96"/><rect x="890" y="100" width="256" height="96"/></g>
+  <g fill="#ecebe3" font-family="monospace" text-anchor="middle"><text x="159" y="139" font-size="19">SQL / API</text><text x="159" y="166" font-size="12" fill="#aab7b0">user intent</text><text x="436" y="139" font-size="19">CALCITE</text><text x="436" y="166" font-size="12" fill="#aab7b0">parse + optimize</text><text x="718" y="139" font-size="19">JOB PLAN</text><text x="718" y="166" font-size="12" fill="#aab7b0">logical → physical</text><text x="1018" y="139" font-size="19">JOB MANAGER</text><text x="1018" y="166" font-size="12" fill="#aab7b0">deploy + lifecycle</text></g>
+  <g fill="none" stroke="#e77d5e" stroke-width="3"><path d="M264 148h62m220 0h62m220 0h62"/><path d="M315 137l12 11-12 11M597 137l12 11-12 11M879 137l12 11-12 11"/></g>
+  <path d="M1018 196v28" fill="none" stroke="#80c7a3" stroke-width="2"/><path d="M1011 215l7 9 7-9" fill="none" stroke="#80c7a3" stroke-width="2"/>
+  <rect x="54" y="222" width="1092" height="54" fill="#24373a" stroke="#405154" stroke-width="2"/>
+  <g fill="#aab7b0" font-family="monospace" text-anchor="middle"><text x="600" y="245" font-size="13" letter-spacing="1">JOB MANAGEMENT</text><text x="600" y="263" font-size="11">resource estimate · monitor · auto-scale · recover</text></g>
+  <g fill="#152327" stroke="#ecebe3" stroke-width="2"><rect x="54" y="300" width="210" height="108"/><rect x="326" y="300" width="250" height="108"/><rect x="638" y="300" width="220" height="108"/><rect x="920" y="300" width="226" height="108"/></g>
+  <g fill="#ecebe3" font-family="monospace" text-anchor="middle"><text x="159" y="343" font-size="19">KAFKA</text><text x="159" y="370" font-size="12" fill="#aab7b0">source offsets</text><text x="451" y="343" font-size="19">KEYED WINDOWS</text><text x="451" y="370" font-size="12" fill="#aab7b0">state + event time</text><text x="748" y="343" font-size="19">AGGREGATE</text><text x="748" y="370" font-size="12" fill="#aab7b0">emit result</text><text x="1033" y="343" font-size="19">PINOT</text><text x="1033" y="370" font-size="12" fill="#aab7b0">serving sink</text></g>
+  <g fill="none" stroke="#e77d5e" stroke-width="3"><path d="M264 354h62m250 0h62m220 0h62"/><path d="M315 343l12 11-12 11M627 343l12 11-12 11M909 343l12 11-12 11"/></g>
+  <path d="M159 408v68h589v-68" fill="none" stroke="#80c7a3" stroke-width="2" stroke-dasharray="7 8"/>
+  <path d="M451 408v68" fill="none" stroke="#80c7a3" stroke-width="2" stroke-dasharray="7 8"/>
+  <rect x="326" y="462" width="532" height="88" fill="#24373a" stroke="#405154" stroke-width="2"/>
+  <g fill="#ecebe3" font-family="monospace" text-anchor="middle"><text x="592" y="495" font-size="17" letter-spacing="1">CHECKPOINT = SOURCE POSITION + JOB STATE</text><text x="592" y="522" font-size="12" fill="#aab7b0">A consistent snapshot lets the job resume after failure.</text></g>
+  <path d="M858 506h114" fill="none" stroke="#80c7a3" stroke-width="2" stroke-dasharray="6 7"/><path d="m961 499 10 7-10 7" fill="none" stroke="#80c7a3" stroke-width="2"/>
+  <rect x="972" y="462" width="174" height="88" fill="#152327" stroke="#405154" stroke-width="2"/>
+  <g fill="#aab7b0" font-family="monospace" text-anchor="middle"><text x="1059" y="496" font-size="14">RECOVER</text><text x="1059" y="520" font-size="11">restart from snapshot</text></g>
+  <text x="42" y="577" fill="#e77d5e" font-family="monospace" font-size="12" letter-spacing="1">BACKPRESSURE FLOWS UPSTREAM · CHECKPOINTS BOUND RECOVERY</text>
+</svg>

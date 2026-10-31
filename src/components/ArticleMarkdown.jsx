@@ -1,9 +1,4 @@
-import {
-  ArticleCallout,
-  ArticleFigure,
-  ArticleImage,
-  CodeBlock,
-} from './ArticleBlocks.jsx'
+import { ArticleCallout, ArticleFigure, ArticleImage, CodeBlock } from './ArticleBlocks.jsx'
 import { ArrowUpRight } from 'lucide-react'
 
 export function headingId(text) {
@@ -93,9 +88,15 @@ export function ArticleMarkdown({ markdown }) {
       continue
     }
 
-    const image = line.match(/^!\[([^\]]*)\]\((\S+?)(?:\s+"([^"]*)")?\)$/)
+    const image = line.match(/^!\[([^\]]*)\]\((\S+?)(?:\s+(['"])(.*?)\3)?(?:\s+dark=(\S+))?\)$/)
     if (image) {
-      blocks.push({ type: 'image', alt: image[1], src: image[2], caption: image[3] })
+      blocks.push({
+        type: 'image',
+        alt: image[1],
+        src: image[2],
+        caption: image[4],
+        darkSrc: image[5],
+      })
       index += 1
       continue
     }

@@ -10,6 +10,9 @@ image: /assets/shopify-reservations/cover.svg
 darkImage: /assets/shopify-reservations/cover-dark.svg
 imageAlt: Inventory reservations moving from a Redis counter to a MySQL pool of locked unit rows
 imageCaption: From a shared quantity counter to a bounded pool of individually lockable units.
+featuredImage: /assets/shopify-reservations/featured.svg
+featuredDarkImage: /assets/shopify-reservations/featured-dark.svg
+featuredImageAlt: Separate Redis reservation state and a MySQL inventory ledger converge into one transaction boundary
 facts: ['THE MOVE|Redis → MySQL', 'THE PRIMITIVE|SKIP LOCKED', 'THE REAL FIND|Connection time']
 ---
 

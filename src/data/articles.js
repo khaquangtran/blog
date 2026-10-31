@@ -1,5 +1,20 @@
 export const articles = [
   {
+    id: 'uber-realtime-data-infrastructure',
+    category: 'Distributed systems / Data platforms',
+    accent: 'blue',
+    date: 'Oct 31, 2026',
+    year: '2026',
+    month: 'October',
+    read: '22 min read',
+    title: 'How Uber built its real-time data infrastructure',
+    desc: 'A detailed reading guide to Uber’s SIGMOD paper: Kafka for durable event movement, Flink for computation, Pinot for live analytics, and the trade-offs that connect them.',
+    searchText:
+      'Uber real-time data infrastructure SIGMOD Kafka Flink Pinot Presto HDFS stream processing OLAP event pipeline federation Consumer Proxy uReplicator Chaperone dead letter queue Surge pricing active active active passive multi region offset synchronization Kappa+ backfill SQL data freshness query latency Pinot indexes star tree analytics',
+    art: 'network',
+    content: 'uber-realtime-data-infrastructure',
+  },
+  {
     id: 'shopify-reservations',
     category: 'System design / Databases',
     accent: 'orange',

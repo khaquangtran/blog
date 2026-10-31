@@ -33,8 +33,12 @@ export function ArticleImage({ src, darkSrc, alt = '', caption, className = '' }
     return () => observer.disconnect()
   }, [darkSrc])
 
+  const isDiagram = src.endsWith('.svg')
+
   return (
-    <figure className={`article-image ${className}`.trim()}>
+    <figure
+      className={`article-image ${isDiagram ? 'article-image--diagram' : ''} ${className}`.trim()}
+    >
       <img src={darkMode && darkSrc ? darkSrc : src} alt={alt} loading="lazy" />
       {caption && <figcaption>{caption}</figcaption>}
     </figure>
@@ -109,7 +113,9 @@ function FigurePanel({ panel }) {
 function ComparisonFigure({ figure }) {
   return (
     <div className="figure-panels">
-      {figure.panels?.map((panel, index) => <FigurePanel panel={panel} key={index} />)}
+      {figure.panels?.map((panel, index) => (
+        <FigurePanel panel={panel} key={index} />
+      ))}
     </div>
   )
 }
@@ -151,7 +157,9 @@ function StateFigure({ figure }) {
       {figure.note && <p className="figure-note">{figure.note}</p>}
       {figure.footer?.length > 0 && (
         <div className="figure-footer">
-          {figure.footer.map((item, index) => <span key={`${item}-${index}`}>{item}</span>)}
+          {figure.footer.map((item, index) => (
+            <span key={`${item}-${index}`}>{item}</span>
+          ))}
         </div>
       )}
     </>
@@ -201,12 +209,34 @@ function MetricsFigure({ figure }) {
   )
 }
 
+function CaseGridFigure({ figure }) {
+  return (
+    <div className="figure-case-grid">
+      {figure.items?.map((item) => (
+        <section className="figure-case-card" key={item.label}>
+          <header>
+            <span>{item.label}</span>
+            <i aria-hidden="true" />
+          </header>
+          <h3>{item.title}</h3>
+          <p>{item.summary}</p>
+          <div className="figure-case-choice">
+            <span>DESIGN PRIORITY</span>
+            <b>{item.priority}</b>
+          </div>
+        </section>
+      ))}
+    </div>
+  )
+}
+
 const figureVariants = {
   comparison: ComparisonFigure,
   flow: FlowFigure,
   states: StateFigure,
   capacity: CapacityFigure,
   metrics: MetricsFigure,
+  'case-grid': CaseGridFigure,
 }
 
 export function ArticleFigure({ figure }) {
