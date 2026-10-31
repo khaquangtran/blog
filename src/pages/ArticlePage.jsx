@@ -33,7 +33,6 @@ export function ArticlePage() {
       </main>
     )
 
-  const isShopify = article.id === 'shopify-reservations'
   const document = getArticleDocument(article.content)
   const articleDetails = { ...article, ...document.metadata }
   const markdown = document.content
@@ -105,20 +104,17 @@ export function ArticlePage() {
           </aside>
         </header>
 
-        {isShopify && (
-          <div className="article-hero-stats">
-            <div>
-              <span>THE MOVE</span>
-              <b>Redis → MySQL</b>
-            </div>
-            <div>
-              <span>THE PRIMITIVE</span>
-              <b>SKIP LOCKED</b>
-            </div>
-            <div>
-              <span>THE REAL FIND</span>
-              <b>Connection time</b>
-            </div>
+        {articleDetails.facts?.length > 0 && (
+          <div className="article-facts">
+            {articleDetails.facts.map((fact, index) => {
+              const [label, ...valueParts] = fact.split('|')
+              return (
+                <div key={`${label}-${index}`}>
+                  <span>{label}</span>
+                  <b>{valueParts.join('|')}</b>
+                </div>
+              )
+            })}
           </div>
         )}
 
@@ -132,7 +128,7 @@ export function ArticlePage() {
           />
         )}
 
-        <div className={`article-reading ${isShopify ? 'shopify-reading' : ''}`}>
+        <div className="article-reading">
           <aside className="article-side-rail">
             {headings.length ? (
               <ArticleToc headings={headings} />

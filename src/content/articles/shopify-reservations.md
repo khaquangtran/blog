@@ -10,6 +10,7 @@ image: /assets/shopify-reservations/cover.svg
 darkImage: /assets/shopify-reservations/cover-dark.svg
 imageAlt: Inventory reservations moving from a Redis counter to a MySQL pool of locked unit rows
 imageCaption: From a shared quantity counter to a bounded pool of individually lockable units.
+facts: ['THE MOVE|Redis → MySQL', 'THE PRIMITIVE|SKIP LOCKED', 'THE REAL FIND|Connection time']
 ---
 
 A checkout reservation is a short promise: hold these units while payment finishes, then claim them if payment succeeds or release them if it does not. Shopify moved this workflow from Redis into MySQL so reservation state and the inventory ledger could share a transaction boundary.
@@ -30,7 +31,33 @@ INCR inventory:item-42
 
 Redis handled concurrency. The difficult edge was the later claim: after payment, MySQL had to update the inventory ledger while Redis removed the reservation. Those writes could not commit atomically across both systems. A failure between them could leave the ledger and reservation disagreeing: an item might be sold but not deducted, or deducted while still appearing reserved.
 
-:::ShopifyMigrationDiagram
+:::figure
+{
+  "variant": "comparison",
+  "eyebrow": "01 / DATA OWNERSHIP",
+  "label": "BEFORE → AFTER",
+  "panels": [
+    {
+      "label": "BEFORE",
+      "title": "Two systems",
+      "items": [
+        { "title": "Redis", "description": "short-lived reservation", "tone": "accent" },
+        { "title": "MySQL", "description": "inventory ledger", "tone": "blue", "connector": { "symbol": "×", "label": "separate atomic boundary" } }
+      ],
+      "note": "Payment claim had to update MySQL and clean up Redis. Those operations could not commit atomically together."
+    },
+    {
+      "label": "AFTER",
+      "title": "One transaction boundary",
+      "items": [
+        { "title": "MySQL", "details": ["reservation units", "inventory ledger"], "description": "reserve + claim under ACID", "tone": "blue" }
+      ],
+      "note": "Reservations and the ledger share a database, so reserve and claim can use transactional guarantees."
+    }
+  ],
+  "caption": "The change was about making inventory state and its ledger agree safely—not a claim that Redis cannot be durable."
+}
+:::
 
 Putting reservation state beside the ledger gave Shopify one place to coordinate those transitions with ACID transactions. It also made it possible to model which inventory location can fulfill a reservation and removed the operational cost of a separate Redis cluster for this particular workflow. This is a workload-specific trade: Redis was not failing at atomic counter operations; the challenge was coordinating that counter with MySQL state.
 
@@ -38,7 +65,17 @@ Putting reservation state beside the ledger gave Shopify one place to coordinate
 
 A reservation is temporary. When payment starts, the system holds units so another checkout cannot take them. A successful payment claims the reserved quantity against the inventory ledger. An unsuccessful or expired payment releases the hold back into the available pool.
 
-:::LifecycleFlow
+:::figure
+{
+  "variant": "flow",
+  "steps": [
+    { "label": "01 / CHECKOUT", "title": "Reserve", "description": "Hold units for a short window" },
+    { "label": "02 / PAYMENT", "title": "Claim", "description": "Commit the sale to inventory" },
+    { "label": "02 / PAYMENT FAILS", "title": "Release", "description": "Return units to availability" }
+  ],
+  "connectors": ["→", "↘"]
+}
+:::
 
 The SQL below is a teaching sketch of the reservation selection pattern. It is not Shopify’s production query or complete schema: it leaves out application-specific columns, validation, and the surrounding transaction handling.
 
@@ -46,7 +83,24 @@ The SQL below is a teaching sketch of the reservation selection pattern. It is n
 
 An earlier shape—one row per item with a quantity column—concentrated concurrent updates on the same record. Shopify instead modeled each sellable unit as a row. To reserve two units, the transaction selects two rows for the correct shop, item, and inventory group.
 
-:::SkipLockedDiagram
+:::figure
+{
+  "variant": "states",
+  "eyebrow": "02 / RESERVE TWO UNITS",
+  "label": "MYSQL 8 · SKIP LOCKED",
+  "items": [
+    { "label": "UNIT 01", "value": "IN USE", "tone": "accent" },
+    { "label": "UNIT 02", "value": "READY", "tone": "mint" },
+    { "label": "UNIT 03", "value": "IN USE", "tone": "accent" },
+    { "label": "UNIT 04", "value": "RESERVED", "tone": "blue" },
+    { "label": "UNIT 05", "value": "READY", "tone": "mint" },
+    { "label": "UNIT 06", "value": "RESERVED", "tone": "blue" }
+  ],
+  "note": "Skip the rows another checkout holds. The query can take other available units instead of waiting on the same locked rows.",
+  "footer": ["SELECT … FOR UPDATE SKIP LOCKED", "LOCK ONLY WHAT YOU CLAIM"],
+  "caption": "Illustrative example. Shopify describes one reservation row per sellable unit and a bounded pool of available rows."
+}
+:::
 
 ```sql|label=SIMPLIFIED RESERVATION SELECTION
 SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
@@ -84,7 +138,22 @@ COMMIT;
 
 One row per unit everywhere would make the table proportional to all stock. For an item with 50,000 units stocked at 10 locations, that could mean 500,000 rows to scan and maintain. Shopify keeps a bounded pool—up to 1,000 available rows per item and location combination—and replenishes it from the inventory ledger.
 
-:::PoolVisual
+:::figure
+{
+  "variant": "capacity",
+  "title": "AVAILABLE UNIT POOL",
+  "summary": "CAP: 1,000 / ITEM / LOCATION",
+  "segments": [
+    { "tone": "mint" }, { "tone": "mint" }, { "tone": "accent" }, { "tone": "mint" }, { "tone": "mint" },
+    { "tone": "accent" }, { "tone": "mint" }, { "tone": "mint" }, { "tone": "accent" }, { "tone": "mint" }
+  ],
+  "legend": [
+    { "tone": "mint", "label": "Available row" },
+    { "tone": "accent", "label": "Reserved / consumed" },
+    { "tone": "blue", "label": "Replenish from ledger ↗" }
+  ]
+}
+:::
 
 The cap is large enough to absorb bursts, but small enough to keep the table and lock scan manageable. If a hot item exhausts its pool, the reserve path replenishes inline. A lock makes one transaction do the refill while other reservations for that item wait, avoiding a thundering herd of refill attempts. That path can add latency, but it avoids incorrectly telling a buyer that available stock is sold out.
 
@@ -123,7 +192,30 @@ This was a targeted choice for the reservation path, not a blanket setting for e
 
 Reserve and claim initially touched two tables in different orders. Reserve inserted into `reserved_quantities` before deleting from `reservation_units`; claim deleted from `reserved_quantities`. Concurrent transactions could form a cycle while waiting on each other. Shopify standardized the reserve order to delete units first, then insert the reservation record.
 
-:::LockOrderVisual
+:::figure
+{
+  "variant": "comparison",
+  "eyebrow": "LOCK ORDER",
+  "panels": [
+    {
+      "label": "BEFORE",
+      "items": [
+        { "title": "RESERVE", "rows": ["reserved_quantities → reservation_units"] },
+        { "title": "CLAIM", "rows": ["reserved_quantities"] }
+      ],
+      "note": "Conflicting acquisition order"
+    },
+    {
+      "label": "AFTER",
+      "items": [
+        { "title": "RESERVE", "rows": ["reservation_units → reserved_quantities"] },
+        { "title": "CLAIM", "rows": ["reserved_quantities"] }
+      ],
+      "note": "Consistent order breaks the cycle"
+    }
+  ]
+}
+:::
 
 For carts with multiple line items, the team also used `UNION ALL` to batch reservation reads into one database round trip. This is a schematic illustration of the batching idea, not production SQL:
 
@@ -157,7 +249,16 @@ SELECT ...;
 
 That visibility showed other checkout code was holding connections longer than necessary. Reservations were the last pressure on a pool that was already close to depletion—not the only slow query. Cleaning up the broader checkout path removed half of primary-database reads and a third of primary-database transactions. Revisiting MySQL thread-concurrency settings also helped remove the ceiling.
 
-:::MetricCallout
+:::figure
+{
+  "variant": "metrics",
+  "items": [
+    { "value": "−50%", "label": "primary reads after checkout-path cleanup" },
+    { "value": "−33%", "label": "primary transactions after cleanup" }
+  ],
+  "caption": "Production results reported by Shopify Engineering."
+}
+:::
 
 The diagnostic lesson is useful: low CPU plus queuing can point toward connection pressure or time spent holding connections, even when individual queries look fast. Measure connection occupancy and caller behavior alongside query latency and CPU.
 
@@ -165,7 +266,19 @@ The diagnostic lesson is useful: low CPU plus queuing can point toward connectio
 
 Shopify ran Redis and MySQL in parallel. Every reservation was written to both systems while Redis remained the source of truth. The team compared business outcomes and performance against real production traffic; there were no in-flight reservations to migrate because both systems were live and building state.
 
-:::CutoverDiagram
+:::figure
+{
+  "variant": "flow",
+  "eyebrow": "03 / THE CUTOVER",
+  "label": "GRADUAL · REVERSIBLE",
+  "steps": [
+    { "label": "01", "title": "Dual write", "description": "Redis stays source of truth" },
+    { "label": "02", "title": "Shadow compare", "description": "Validate outcomes + performance" },
+    { "label": "03", "title": "Switch gradually", "description": "Pod by pod, kill switch ready" }
+  ],
+  "caption": "Because both systems were live during shadow mode, Shopify says there were no in-flight reservations to migrate."
+}
+:::
 
 After confidence in correctness and performance, the source of truth moved to MySQL gradually, pod by pod, from lower-traffic environments toward the largest merchants. The dual-write path and kill switch preserved a way back to Redis during rollout.
 

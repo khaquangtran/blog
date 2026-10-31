@@ -1,27 +1,10 @@
 import {
   ArticleCallout,
+  ArticleFigure,
   ArticleImage,
   CodeBlock,
-  CutoverDiagram,
-  LifecycleFlow,
-  LockOrderVisual,
-  MetricCallout,
-  PoolVisual,
-  ShopifyMigrationDiagram,
-  SkipLockedDiagram,
 } from './ArticleBlocks.jsx'
 import { ArrowUpRight } from 'lucide-react'
-
-const embeds = {
-  ArticleCallout,
-  ShopifyMigrationDiagram,
-  SkipLockedDiagram,
-  CutoverDiagram,
-  LifecycleFlow,
-  PoolVisual,
-  LockOrderVisual,
-  MetricCallout,
-}
 
 export function headingId(text) {
   return text
@@ -88,10 +71,16 @@ export function ArticleMarkdown({ markdown }) {
       continue
     }
 
-    const embed = line.match(/^:::([A-Z][A-Za-z]+)(?:\s+title="([^"]+)")?$/)
-    if (embed) {
-      blocks.push({ type: 'embed', name: embed[1], title: embed[2] })
+    if (line.trim() === ':::figure') {
+      const figureLines = []
       index += 1
+      while (index < lines.length && lines[index].trim() !== ':::') figureLines.push(lines[index++])
+      index += 1
+      try {
+        blocks.push({ type: 'figure', figure: JSON.parse(figureLines.join('\n')) })
+      } catch (error) {
+        console.error('Unable to parse article figure JSON:', error)
+      }
       continue
     }
 
@@ -176,11 +165,7 @@ export function ArticleMarkdown({ markdown }) {
           {inline(block.text, `callout${i}`)}
         </ArticleCallout>
       )
-    if (block.type === 'embed') {
-      const Component = embeds[block.name]
-      if (!Component) return null
-      return block.title ? <Component key={i} title={block.title} /> : <Component key={i} />
-    }
+    if (block.type === 'figure') return <ArticleFigure key={i} figure={block.figure} />
     if (block.type === 'heading') {
       const Tag = `h${block.level}`
       return (

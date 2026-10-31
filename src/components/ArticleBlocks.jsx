@@ -50,230 +50,175 @@ export function ArticleCallout({ title = 'NOTE', children }) {
   )
 }
 
-export function ShopifyMigrationDiagram() {
+function FigureHeader({ eyebrow, label }) {
+  if (!eyebrow && !label) return null
   return (
-    <figure className="shopify-diagram">
-      <div className="diagram-caption">
-        <span>01 / DATA OWNERSHIP</span>
-        <span>BEFORE → AFTER</span>
-      </div>
-      <div className="migration-columns">
-        <section className="migration-state old-state">
-          <div className="migration-state-title">
-            <span>BEFORE</span>
-            <b>Two systems</b>
-          </div>
-          <div className="mini-system">
-            <div className="mini-box redis-box">
-              <strong>Redis</strong>
-              <small>short-lived reservation</small>
-            </div>
-            <span className="mini-connector split">
-              <i /> separate atomic boundary
-            </span>
-            <div className="mini-box mysql-box">
-              <strong>MySQL</strong>
-              <small>inventory ledger</small>
-            </div>
-          </div>
-          <p>
-            Payment claim had to update MySQL and clean up Redis. Those operations could not commit
-            atomically together.
-          </p>
-        </section>
-        <section className="migration-state new-state">
-          <div className="migration-state-title">
-            <span>AFTER</span>
-            <b>One transaction boundary</b>
-          </div>
-          <div className="mini-box mysql-box unified-box">
-            <strong>MySQL</strong>
-            <div className="mysql-parts">
-              <span>reservation units</span>
-              <span>inventory ledger</span>
-            </div>
-            <small>reserve + claim under ACID</small>
-          </div>
-          <p>
-            Reservations and the ledger share a database, so reserve and claim can use transactional
-            guarantees.
-          </p>
-        </section>
-      </div>
-      <figcaption>
-        The change was about making inventory state and its ledger agree safely—not a claim that
-        Redis cannot be durable.
-      </figcaption>
-    </figure>
+    <div className="figure-header">
+      {eyebrow && <span>{eyebrow}</span>}
+      {label && <span>{label}</span>}
+    </div>
   )
 }
 
-export function SkipLockedDiagram() {
-  const units = ['LOCKED', 'AVAILABLE', 'LOCKED', 'AVAILABLE', 'AVAILABLE', 'AVAILABLE']
+function FigurePanel({ panel }) {
   return (
-    <figure className="skip-locked-figure">
-      <div className="diagram-caption">
-        <span>02 / RESERVE TWO UNITS</span>
-        <span>MYSQL 8 · SKIP LOCKED</span>
+    <section className="figure-panel">
+      {(panel.label || panel.title) && (
+        <header className="figure-panel-heading">
+          {panel.label && <span>{panel.label}</span>}
+          {panel.title && <b>{panel.title}</b>}
+        </header>
+      )}
+      {panel.items?.length > 0 && (
+        <div className="figure-entities">
+          {panel.items.map((item, index) => (
+            <div className="figure-entity-wrap" key={`${item.title}-${index}`}>
+              {index > 0 && item.connector && (
+                <div className="figure-connector">
+                  <i aria-hidden="true">{item.connector.symbol || '→'}</i>
+                  {item.connector.label && <span>{item.connector.label}</span>}
+                </div>
+              )}
+              <div className={`figure-entity tone-${item.tone || 'default'}`}>
+                {item.title && <b>{item.title}</b>}
+                {item.details?.length > 0 && (
+                  <div className="figure-entity-details">
+                    {item.details.map((detail, detailIndex) => (
+                      <span key={`${detail}-${detailIndex}`}>{detail}</span>
+                    ))}
+                  </div>
+                )}
+                {item.description && <small>{item.description}</small>}
+                {item.rows?.length > 0 && (
+                  <div className="figure-entity-rows">
+                    {item.rows.map((row, rowIndex) => (
+                      <p key={`${row}-${rowIndex}`}>{row}</p>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      {panel.note && <p className="figure-panel-note">{panel.note}</p>}
+    </section>
+  )
+}
+
+function ComparisonFigure({ figure }) {
+  return (
+    <div className="figure-panels">
+      {figure.panels?.map((panel, index) => <FigurePanel panel={panel} key={index} />)}
+    </div>
+  )
+}
+
+function FlowFigure({ figure }) {
+  return (
+    <div className="figure-flow">
+      {figure.steps?.map((step, index) => (
+        <div className="figure-flow-item-wrap" key={`${step.title}-${index}`}>
+          <div className="figure-flow-item">
+            {step.label && <span>{step.label}</span>}
+            {step.title && <b>{step.title}</b>}
+            {step.description && <small>{step.description}</small>}
+          </div>
+          {index < figure.steps.length - 1 && (
+            <i className="figure-flow-connector" aria-hidden="true">
+              {figure.connectors?.[index] || '→'}
+            </i>
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function StateFigure({ figure }) {
+  return (
+    <>
+      {figure.items?.length > 0 && (
+        <div className="figure-state-grid">
+          {figure.items.map((item, index) => (
+            <div className={`figure-state tone-${item.tone || 'default'}`} key={index}>
+              {item.label && <span>{item.label}</span>}
+              {item.value && <b>{item.value}</b>}
+            </div>
+          ))}
+        </div>
+      )}
+      {figure.note && <p className="figure-note">{figure.note}</p>}
+      {figure.footer?.length > 0 && (
+        <div className="figure-footer">
+          {figure.footer.map((item, index) => <span key={`${item}-${index}`}>{item}</span>)}
+        </div>
+      )}
+    </>
+  )
+}
+
+function CapacityFigure({ figure }) {
+  return (
+    <>
+      <div className="figure-capacity-label">
+        <span>{figure.title}</span>
+        {figure.summary && <b>{figure.summary}</b>}
       </div>
-      <div className="unit-grid">
-        {units.map((state, index) => (
-          <div
+      <div className="figure-capacity-track" aria-label={figure.title}>
+        {figure.segments?.map((segment, index) => (
+          <i
             key={index}
-            className={`unit-cell ${state === 'LOCKED' ? 'unit-locked' : index === 3 || index === 5 ? 'unit-picked' : ''}`}
-          >
-            <span>UNIT {String(index + 1).padStart(2, '0')}</span>
-            <b>
-              {state === 'LOCKED' ? 'IN USE' : index === 3 || index === 5 ? 'RESERVED' : 'READY'}
-            </b>
-          </div>
+            className={`tone-${segment.tone || 'default'}`}
+            aria-label={segment.label || segment.tone || `Segment ${index + 1}`}
+          />
         ))}
       </div>
-      <div className="skip-locked-note">
-        <span className="skip-lock-mark">↗</span>
-        <p>
-          <strong>Skip the rows another checkout holds.</strong>
-          <br />
-          The query can take other available units instead of waiting on the same locked rows.
-        </p>
-      </div>
-      <div className="sql-strip">
-        <span>SELECT … FOR UPDATE SKIP LOCKED</span>
-        <span>LOCK ONLY WHAT YOU CLAIM</span>
-      </div>
-      <figcaption>
-        Illustrative example. Shopify describes one reservation row per sellable unit and a bounded
-        pool of available rows.
-      </figcaption>
+      {figure.legend?.length > 0 && (
+        <div className="figure-legend">
+          {figure.legend.map((item, index) => (
+            <span key={`${item.label}-${index}`}>
+              <i className={`tone-${item.tone || 'default'}`} />
+              {item.label}
+            </span>
+          ))}
+        </div>
+      )}
+    </>
+  )
+}
+
+function MetricsFigure({ figure }) {
+  return (
+    <div className="figure-metrics">
+      {figure.items?.map((item, index) => (
+        <div className="figure-metric" key={`${item.value}-${index}`}>
+          <b>{item.value}</b>
+          <span>{item.label}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+const figureVariants = {
+  comparison: ComparisonFigure,
+  flow: FlowFigure,
+  states: StateFigure,
+  capacity: CapacityFigure,
+  metrics: MetricsFigure,
+}
+
+export function ArticleFigure({ figure }) {
+  if (!figure || typeof figure !== 'object') return null
+  const Variant = figureVariants[figure.variant]
+  if (!Variant) return null
+
+  return (
+    <figure className={`article-figure article-figure--${figure.variant}`}>
+      <FigureHeader eyebrow={figure.eyebrow} label={figure.label} />
+      <Variant figure={figure} />
+      {figure.caption && <figcaption>{figure.caption}</figcaption>}
     </figure>
-  )
-}
-
-export function CutoverDiagram() {
-  return (
-    <figure className="cutover-figure">
-      <div className="diagram-caption">
-        <span>03 / THE CUTOVER</span>
-        <span>GRADUAL · REVERSIBLE</span>
-      </div>
-      <div className="cutover-steps">
-        <div>
-          <span>01</span>
-          <b>Dual write</b>
-          <small>Redis stays source of truth</small>
-        </div>
-        <i>→</i>
-        <div>
-          <span>02</span>
-          <b>Shadow compare</b>
-          <small>Validate outcomes + performance</small>
-        </div>
-        <i>→</i>
-        <div>
-          <span>03</span>
-          <b>Switch gradually</b>
-          <small>Pod by pod, kill switch ready</small>
-        </div>
-      </div>
-      <figcaption>
-        Because both systems were live during shadow mode, Shopify says there were no in-flight
-        reservations to migrate.
-      </figcaption>
-    </figure>
-  )
-}
-
-export function LifecycleFlow() {
-  return (
-    <div className="lifecycle-flow">
-      <div>
-        <span>01 / CHECKOUT</span>
-        <b>Reserve</b>
-        <small>Hold units for a short window</small>
-      </div>
-      <i>→</i>
-      <div>
-        <span>02 / PAYMENT</span>
-        <b>Claim</b>
-        <small>Commit the sale to inventory</small>
-      </div>
-      <i>↘</i>
-      <div>
-        <span>02 / PAYMENT FAILS</span>
-        <b>Release</b>
-        <small>Return units to availability</small>
-      </div>
-    </div>
-  )
-}
-
-export function PoolVisual() {
-  return (
-    <div className="pool-visual">
-      <div className="pool-label">
-        <span>AVAILABLE UNIT POOL</span>
-        <b>CAP: 1,000 / ITEM / LOCATION</b>
-      </div>
-      <div className="pool-track">
-        {Array.from({ length: 10 }, (_, index) => (
-          <i key={index} />
-        ))}
-      </div>
-      <div className="pool-legend">
-        <span>
-          <i className="pool-ready" />
-          Available row
-        </span>
-        <span>
-          <i className="pool-consumed" />
-          Reserved / consumed
-        </span>
-        <span>Replenish from ledger ↗</span>
-      </div>
-    </div>
-  )
-}
-
-export function LockOrderVisual() {
-  return (
-    <div className="lock-order-visual">
-      <div>
-        <span>BEFORE</span>
-        <p>
-          RESERVE <b>reserved_quantities</b> → <b>reservation_units</b>
-        </p>
-        <p>
-          CLAIM <b>reserved_quantities</b>
-        </p>
-        <em>conflicting acquisition order</em>
-      </div>
-      <div>
-        <span>AFTER</span>
-        <p>
-          RESERVE <b>reservation_units</b> → <b>reserved_quantities</b>
-        </p>
-        <p>
-          CLAIM <b>reserved_quantities</b>
-        </p>
-        <em>consistent order breaks the cycle</em>
-      </div>
-    </div>
-  )
-}
-
-export function MetricCallout() {
-  return (
-    <div className="metric-callout">
-      <div>
-        <b>−50%</b>
-        <span>primary reads after checkout-path cleanup</span>
-      </div>
-      <i />
-      <div>
-        <b>−33%</b>
-        <span>primary transactions after cleanup</span>
-      </div>
-      <small>Production results reported by Shopify Engineering</small>
-    </div>
   )
 }
