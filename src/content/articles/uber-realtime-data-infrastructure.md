@@ -1,6 +1,6 @@
 ---
 title: 'How Uber built its real-time data infrastructure'
-description: 'A detailed reading guide to Uber’s SIGMOD paper: Kafka for durable event movement, Flink for computation, Pinot for live analytics, and the trade-offs that connect them.'
+description: 'A plain-language guide to Uber’s 2021 paper on moving live events, calculating updates, and answering data questions quickly across regions.'
 date: '2026-10-31'
 category: 'Distributed systems / Data platforms'
 read: '22 min read'
@@ -9,11 +9,11 @@ keywords:
   [Uber, real-time data, Kafka, Flink, Apache Pinot, stream processing, OLAP, distributed systems]
 image: /assets/uber-realtime-data-infrastructure/cover.svg
 darkImage: /assets/uber-realtime-data-infrastructure/cover-dark.svg
-imageAlt: "An abstract network of live data events moving through Uber's distributed architecture"
-imageCaption: 'An abstract editorial illustration of data moving through a real-time platform.'
+imageAlt: 'An abstract network of live data events moving through Uber’s systems'
+imageCaption: 'An abstract illustration of live data moving through connected systems.'
 featuredImage: /assets/uber-realtime-data-infrastructure/featured.svg
 featuredDarkImage: /assets/uber-realtime-data-infrastructure/featured-dark.svg
-featuredImageAlt: Three regional event streams enter a federated Kafka platform and flow through Flink into Pinot, with an archive branch to HDFS
+featuredImageAlt: Live events move through Kafka and Flink, then reach Pinot for quick reports and HDFS for long-term storage
 facts:
   [
     'THE PAPER|SIGMOD ’21',
@@ -22,75 +22,75 @@ facts:
   ]
 ---
 
-In a ride-hailing marketplace, data loses value quickly. A driver changes location, a restaurant accepts an order, a payment is authorized, or demand shifts across a neighborhood. The platform needs to move these events, calculate useful signals, and make the results queryable while they still describe the present.
+In a ride-hailing marketplace, information can become old in minutes. A driver changes location, a restaurant accepts an order, a payment is approved, or demand shifts across a neighborhood. Each update is an **event**: a record that something happened. Uber needs to move those records, calculate what they mean, and make the results available while they are still useful.
 
-Yupeng Fu and Chinmay Soman’s paper, _Real-time Data Infrastructure at Uber_, is a tour of the systems Uber assembled for that job. Its central lesson is architectural: a real-time data platform is not one fast database. It is a chain of systems for moving events, computing state, serving queries, and recovering from failure. Each link has different guarantees and bottlenecks.
+Yupeng Fu and Chinmay Soman’s paper, _Real-time Data Infrastructure at Uber_, explains the systems Uber built for this work. Its main lesson is that one fast database cannot do everything. Uber links several systems: one moves events, one keeps calculations up to date, and another answers questions about the data. Each part has a different job and different ways it can fail.
 
-This article walks through that chain and the paper’s examples. I’ll distinguish the paper’s reported design from explanatory SQL and diagrams added here. The paper describes Uber’s systems as they stood around 2020–2021; its volume figures and implementation details are historical snapshots, not claims about Uber today.
+This article walks through those systems and the examples in the paper. The SQL and diagrams here are teaching examples, not copies of Uber’s production code. The paper describes Uber around 2020–2021, so its numbers and system details are historical snapshots, not a description of Uber today.
 
 ## The problem: fresh data for many kinds of work
 
-The paper starts from three sources of pressure:
+The paper starts with three practical problems:
 
-- **Data grows.** Thousands of services produce logs, state changes, and business events. The paper says that, as of October 2020, Uber generated trillions of messages and petabytes of data per day across its regions.
-- **Use cases disagree.** Dynamic pricing wants fresh signals and continued operation during partial failure. Financial reporting values completeness, de-duplication, and consistency across regions. A restaurant dashboard needs a query to finish before a page feels slow.
-- **Users need different interfaces.** Engineers build long-running pipelines; analysts want SQL; operations teams need dashboards and alerts without becoming stream-processing specialists.
+- **There is a lot of data.** Thousands of services produce logs, status changes, and business events. The paper says Uber generated trillions of messages and petabytes of data a day across its regions in October 2020.
+- **Different jobs need different things.** Surge pricing needs fresh data and should keep working during a problem. Financial reports must avoid missing or counting records twice. A restaurant dashboard needs to load quickly.
+- **People need different tools.** Engineers build the data jobs, analysts ask questions with SQL, and operations teams use dashboards and alerts.
 
-These requirements pull in different directions. Strong cross-region consistency can increase latency or reduce availability during a network partition. Keeping every raw event in memory makes queries fast but expensive. Runtime flexibility can make a query slower than a precomputed answer. The platform’s job is to offer shared building blocks while allowing each workload to choose its trade-offs explicitly.
+These needs can conflict. For example, making every region wait until it agrees on an update can make the system slower, or stop it from responding when regions cannot communicate. Keeping all raw data in memory can make answers faster, but it costs more. A pre-calculated answer is quick to show, but it cannot answer every new question. Uber’s platform provides shared building blocks and lets each job choose which trade-offs matter most.
 
-The authors group the requirements as consistency, availability, freshness, query latency, scalability, cost, and flexibility. A “real-time” platform therefore has no single latency target: a pricing pipeline may care that an aggregate is only seconds old, while an interactive OLAP query may have a sub-second p99 target. Those are different measures at different points in the system.
+The authors group these needs as **consistency** (regions agree on the result), **availability** (the service can still respond), **freshness** (how recently the data was updated), speed, cost, and flexibility. “Real time” does not mean one fixed speed: a pricing job may need data that is only a few seconds old, while an interactive report may need to finish in under a second. Those measure different parts of the system.
 
 ## The shape of the platform
 
-The main data path in the paper has three core systems:
+The paper’s main data path uses three systems:
 
-- **Kafka.** accepts and distributes events between producers and consumers.
-- **Flink.** applies stateful or stateless computation to those streams.
-- **Pinot.** indexes recent data so users can run low-latency analytical queries.
+- **Kafka** carries event records from the services that create them to the systems that use them.
+- **Flink** continuously processes those records and updates calculations, such as order counts or supply-and-demand estimates.
+- **Pinot** organizes recent data so dashboards and analysts can get answers quickly.
 
-Raw streams are also archived to **HDFS**, compacted into columnar files such as Parquet, and used for historical analysis and replay. **Presto** provides an interactive SQL route into Pinot. Around these engines, the paper describes APIs, metadata, job management, monitoring, and operational tooling. The platform story is as much about those boundaries as it is about the engines themselves.
+Uber also stores a long-term copy in **HDFS**, a file system for large data sets. The data can be saved in **Parquet**, a format that stores similar kinds of values together to make large scans more efficient. **Presto** lets people use SQL to ask questions of Pinot. The paper also describes tools for defining data, launching jobs, and checking whether the systems are healthy. These supporting tools are part of the platform too.
 
-![A simplified Uber real-time data path: Kafka feeds Flink and Pinot, with HDFS archival and Presto queries](/assets/uber-realtime-data-infrastructure/architecture.svg 'Kafka moves events; Flink computes; Pinot serves low-latency analytics; HDFS preserves history.' dark=/assets/uber-realtime-data-infrastructure/architecture-dark.svg)
+![A simplified Uber data path: Kafka moves events to Flink and Pinot, while HDFS stores older data](/assets/uber-realtime-data-infrastructure/architecture.svg 'Kafka moves updates, Flink calculates, Pinot answers questions about recent data, and HDFS keeps older records.' dark=/assets/uber-realtime-data-infrastructure/architecture-dark.svg)
 
-The layers separate different responsibilities. Kafka is the handoff and retention boundary; it should not need to know every downstream business calculation. Flink owns continuous computation and its state. Pinot turns selected records or aggregates into an index optimized for analytical reads. HDFS keeps a durable historical copy that is more economical for large-scale batch work.
+Each layer has a clear job. Kafka hands events to the next system. Flink keeps calculations up to date. Pinot arranges selected data so common questions are quick to answer. HDFS keeps older data for large reports and for rerunning calculations later.
 
-That separation also contains change. A stream job can evolve without each producer understanding its query plan. A dashboard can change its query without making the application service publish a new event format. Metadata and schemas provide the contracts that keep these independently moving parts understandable.
+This separation also makes changes easier. A change to a calculation does not require every service that sends events to change too. A dashboard can ask a new question without changing how an application records an event. Shared data definitions help each part agree on what the records mean.
 
-## Kafka: make event movement scale without hiding failure
+## Kafka: move events between services
 
-At Uber’s scale, a single Kafka cluster becomes an operational and scaling boundary. The paper describes a **federated Kafka architecture**: users see a logical messaging platform, while metadata and routing distribute topics across multiple physical Kafka clusters. The paper reports that their experience favored keeping clusters below roughly 150 nodes, then scaling the overall service by adding clusters. Treat that as an observed operating point in their environment, not a universal Kafka limit.
+At Uber’s scale, one Kafka cluster would be difficult to grow and operate. The paper describes one shared Kafka service built from several clusters. Applications use it as one service, while Uber spreads topics across the clusters behind the scenes. A **topic** is a named stream of related events. Uber’s experience at the time suggested keeping each cluster below about 150 machines and adding clusters as the service grew. That was their operating experience, not a limit that applies to every Kafka system.
 
-This federation lets the platform move topics between clusters while they are live and grow capacity without asking every producer to understand cluster placement. It also creates a control-plane problem: clients need to discover where a topic lives, and moving a topic must not silently interrupt the event stream.
+This setup lets Uber move a live topic between clusters and add capacity without asking every application to know where the topic lives. The platform tracks each topic’s location and routes applications to it without interrupting the flow of events.
 
-![Kafka federation places a logical messaging service over physical clusters, with proxy clients, replication, and auditing](/assets/uber-realtime-data-infrastructure/kafka-federation.svg 'Logical routing and operational tools sit around the Kafka brokers.' dark=/assets/uber-realtime-data-infrastructure/kafka-federation-dark.svg)
+![Uber spreads one Kafka service across several clusters and adds tools for routing, copying, and checking messages](/assets/uber-realtime-data-infrastructure/kafka-federation.svg 'Applications see one Kafka service; the platform routes messages across the clusters behind it.' dark=/assets/uber-realtime-data-infrastructure/kafka-federation-dark.svg)
 
-### Thin clients and push-based consumption
+### Kafka’s Consumer Proxy: simpler apps, more workers
 
-The **Consumer Proxy** moves consumer-library complexity into a platform service. A generated, thin gRPC client connects to the proxy, which dispatches messages to consumers. The paper argues that this push-oriented design helps with concurrency and gives the platform one place to handle retries and client compatibility. Applications need less Kafka-specific code. Instead, they specify what they need to consume, such as the topics they are interested in, while the platform can roll out client behavior centrally.
+Kafka’s usual client library contains code for batching, compression, and other details. At a large company, updating that library in thousands of applications can take a long time. Uber built the **Consumer Proxy** to handle much of that work in one shared service. Each application uses a small, generated **gRPC client**—a lightweight way for one service to call another—and tells the proxy which topics it wants to receive.
 
-More importantly, this design decouples application consumers from Kafka's partition limit. The proxy consumes from Kafka and fans messages out to many application clients, allowing the application layer to scale independently of Kafka's partitions.
+The proxy reads messages from Kafka and pushes them to application workers. A topic is divided into ordered slices called **partitions**. In a consumer group, Kafka can assign each slice to only one consumer at a time, so adding more consumers than partitions would normally leave some idle. The proxy can spread messages across more application workers when those messages can be handled independently.
 
-The trade is another service on the data path. A proxy can standardize access and improve operability, but it needs its own capacity planning, monitoring, and failure handling. Abstraction reduces the number of ways every application can make a mistake; it does not make the underlying failure modes disappear.
+The cost is another service that every message passes through. The proxy needs enough capacity, monitoring, and a recovery plan of its own. A shared service can make applications simpler, but it also becomes something operators must keep healthy.
 
-### Poison messages, replication, and auditing
+### Bad messages, copying data, and checking the copies
 
-Repeatedly retrying one malformed record can block useful work behind it. Uber’s **dead-letter queue (DLQ)** path sends a message aside after a configured retry budget, allowing the live stream to progress while operators investigate the bad record. A DLQ is useful only if it is visible and actionable: otherwise it becomes an unmonitored place where data goes missing from the main path.
+One broken message can hold up the messages behind it if the system retries it forever. Uber’s **dead-letter queue (DLQ)** sends a message to a separate stream after a set number of failed attempts. The main stream can continue while an operator investigates the bad message. The DLQ must be monitored and have a way to retry or clear messages; otherwise, data can sit there unnoticed.
 
-For cross-cluster replication, **uReplicator** adapts replication work to load and rebalances it to reduce the number of affected partitions during changes. **Chaperone** audits replication by comparing unique message counts over tumbling time windows at successive stages. A mismatch can reveal loss or duplication that ordinary service health metrics would miss.
+Uber’s **uReplicator** copies messages between Kafka clusters and can move copying work when traffic changes or the cluster layout changes. **Chaperone** checks whether the copies arrived: it counts unique messages in short time periods at different points in the copying path and compares the counts. A mismatch can reveal missing or duplicated messages even if the services appear to be running.
 
-These tools address distinct failure classes: retries and DLQs isolate bad records; adaptive replication moves data between clusters; auditing checks whether the movement actually preserved the expected records. “Kafka is healthy” is not enough evidence that a downstream consumer saw every event.
+Each tool catches a different problem. Retries and DLQs keep a broken message from blocking the stream. uReplicator moves messages between clusters. Chaperone checks that the copy is complete. A healthy Kafka service does not by itself prove that every later system received every message.
 
-## Flink: compute continuous results and manage the jobs
+## Flink: keep calculations running as data arrives
 
-Kafka moves events, but business logic needs state. A stream processor may count orders per region, join events from different topics, or maintain a rolling view of supply and demand. Such jobs must recover their state after a process or machine failure without producing arbitrary gaps or duplicates.
+Kafka moves events, but Uber also needs to calculate what those events mean. **Flink** runs programs, called **jobs**, that can keep a running count of orders in each region, combine related events, or track changing supply and demand. The values a job remembers between events are called its **state**. If a machine fails, Flink needs to restore that state and continue without skipping or repeating too much work.
 
-Uber selected **Apache Flink** for stateful streaming. Checkpoints capture job state and source positions so a job can recover from a consistent point. Backpressure is also visible in a streaming pipeline: if a downstream operator cannot keep up, upstream work must slow down or buffers grow. Recovery time, checkpoint behavior, memory use, and operational control matter as much as the speed of one operator.
+Uber chose **Apache Flink** for these ongoing calculations. Flink periodically saves a **checkpoint**: a copy of the job’s current values and how far it has read in each input stream. After a failure, the job can resume from that saved point. Flink also has to handle **backpressure**: when one step cannot process data as fast as the previous step sends it, a backlog starts to grow. Recovery time, saved state, memory use, and day-to-day management all matter, not only the speed of the calculation itself.
 
-The paper describes an earlier internal comparison among Storm, Spark Streaming, Samza, and Flink. In that test, Storm recovery took hours while Flink recovered in about 20 minutes; Spark used five to ten times as much memory for the evaluated workload; and Samza’s state was coupled to Kafka. Those figures belong to that comparison and workload. They explain the team’s selection, but they are not a general benchmark of current versions.
+The paper reports an earlier test of Storm, Spark Streaming, Samza, and Flink. In that test, Storm took hours to recover while Flink took about 20 minutes. Spark used five to ten times more memory for the workload they tested, and Samza depended on Kafka to store its job state. These results explain Uber’s choice for that workload at that time; they are not a general comparison of today’s versions.
 
-### SQL as a front end, not the execution engine
+### SQL: describe the result, let the platform run it
 
-Not every user should have to write a low-level streaming program. Uber’s SQL layer uses Apache Calcite to parse and optimize SQL, then translates the result through logical and physical plans into Flink jobs. A declarative query expresses _what_ should be computed; the planner and platform determine _how_ to run it and manage its lifecycle.
+Not everyone who needs a calculation should have to write a program that runs continuously as new events arrive. Uber’s SQL layer uses Apache Calcite to read and improve a query, then turns it into a Flink job. SQL lets a user say **what result they want**. The platform works out the steps to produce it, launches the job, and manages it while it runs.
 
 Here is an illustrative Flink-style query for a one-minute order count. It is a teaching example, not SQL copied from the paper or Uber’s production code:
 
@@ -105,27 +105,27 @@ GROUP BY
   TUMBLE(event_time, INTERVAL '1' MINUTE);
 ```
 
-The query describes a keyed windowed aggregate. The engine must still decide how to assign events to windows, how to represent the aggregate state, when a window is complete enough to emit, and what happens when events arrive late. The paper’s Surge example deliberately favors freshness and availability and ignores late events. A financial reconciliation job would likely make a different choice and accept more delay or correction work.
+This query groups orders by region and by one-minute time windows, then counts them. The system still needs rules for which window an event belongs in, when to publish a count, and what to do with an event that arrives late. Uber’s Surge example puts fresh results first and ignores late events. A financial report might wait longer or correct earlier results so it can include more data.
 
-SQL does not remove those semantics. It makes them easier to express and gives the platform a place to validate, compile, estimate resources, and deploy the work consistently. The authors describe estimating job needs and scaling from runtime signals such as load and garbage-collection behavior. Stateless CPU-heavy jobs and stateful memory-heavy joins need different resource models; one global “CPU utilization” rule is not enough.
+SQL does not decide what a late event should mean; the user still needs to choose that rule. SQL makes the calculation easier to describe, while the platform checks it, estimates the resources it needs, and starts it. Different jobs need different resources. A calculation that uses a lot of memory may need a different setup from one that mostly uses the processor, so one simple rule cannot manage every job well.
 
-### A platform has to operate jobs after submission
+### Keep jobs healthy after they launch
 
-Uber describes a unified Flink platform with three broad pieces: infrastructure, job management, and the platform layer. The job-management system owns deployment and lifecycle; monitoring rules detect unhealthy jobs and can recover, restart, or scale them. This turns a collection of manually operated Flink applications into a service users can depend on.
+Uber describes a shared Flink platform that provides machines for the jobs, tools to launch and manage them, and checks to notice problems. If a job gets stuck or a machine fails, the platform can restart or resize the job. That makes Flink a service teams can use without managing every detail themselves.
 
-The paper reports thousands of Flink jobs and 30% year-over-year growth at the time. That growth makes self-service and automation part of correctness. If deploying a job requires an expert operator each time, operational capacity becomes the bottleneck before the compute cluster does.
+At the time of the paper, Uber ran thousands of Flink jobs, with the number growing by about 30% each year. Automating launches and routine recovery helps the platform keep up. If every new job needs a specialist to set it up and watch it, the team running the platform can become the limit before the computers do.
 
-![Calcite turns a declarative SQL query into a managed Flink job with checkpointed state and monitored execution](/assets/uber-realtime-data-infrastructure/flink-runtime.svg 'Planning, execution, checkpoints, and operations form one service.' dark=/assets/uber-realtime-data-infrastructure/flink-runtime-dark.svg)
+![A SQL query becomes a Flink job that the platform launches, saves, and monitors](/assets/uber-realtime-data-infrastructure/flink-runtime.svg 'The platform turns a query into a running job, saves its progress, and watches for problems.' dark=/assets/uber-realtime-data-infrastructure/flink-runtime-dark.svg)
 
-## Pinot: trade general-purpose storage for predictable analytical reads
+## Pinot: get quick answers from recent data
 
-**Apache Pinot** is the serving layer for low-latency OLAP. It combines real-time ingestion with historical segments and uses a distributed scatter-gather-merge query path: broker nodes route a query to the servers holding relevant segments, collect partial results, then merge them for the caller.
+**Apache Pinot** stores recent data in a form that can answer reports and dashboard questions quickly. It combines new data with older stored data. When a question comes in, a **broker** (a request router) splits the work among machines that hold the needed data. Those machines return partial answers, and the broker combines them into one result.
 
-Pinot’s column-oriented layout and indexes target common analytical filters and aggregates. The paper discusses inverted, range, and sorted indexes, along with **star-tree** indexes for pre-aggregating selected dimensions. A sorted index can help when values cluster in a useful order; an inverted index maps values to matching documents; a range index narrows numeric intervals; a star-tree stores summaries that can answer some grouped queries without scanning every row.
+Pinot groups data by column—for example, it can keep all the `status` values together—and builds **indexes** to find useful rows quickly. An index is an extra structure that helps the system locate data without checking every record. The paper discusses several kinds: an **inverted index** lists which records have a given value; a **range index** helps find values between two numbers; a **sorted index** keeps values in order; and a **star-tree index** stores selected totals ahead of time so some grouped questions can be answered without reading every row.
 
-Every index spends storage and ingestion work to save query work. A star-tree can make a known dashboard query much faster, but it is not a free speedup for every possible grouping. Index selection should follow actual query patterns and cardinality. The paper compares Pinot with Elasticsearch and Druid on selected workloads and describes trade-offs in memory, disk, and latency. Those results are tied to its test setup; they should not be read as a blanket ranking of these systems.
+Indexes take extra storage and time to maintain, so they are a trade: Pinot spends more effort when data arrives to make some questions faster later. A star-tree can speed up a dashboard that asks the same kinds of questions often, but it cannot speed up every possible question. The right indexes depend on what people actually ask. The paper compares Pinot with Elasticsearch and Druid on selected tests; those results depend on the test setup and do not rank the systems for every use.
 
-![A Pinot broker scatters a query to segment servers, uses indexes to scan and aggregate, then merges partial results](/assets/uber-realtime-data-infrastructure/pinot-query.svg 'The broker coordinates fan-out and merges the servers’ partial answers.' dark=/assets/uber-realtime-data-infrastructure/pinot-query-dark.svg)
+![Pinot sends parts of a question to machines with the needed data, then combines their answers](/assets/uber-realtime-data-infrastructure/pinot-query.svg 'A router sends the question to the right machines and combines their answers.' dark=/assets/uber-realtime-data-infrastructure/pinot-query-dark.svg)
 
 For example, a dashboard might ask a Pinot-like store for orders by region over the last few minutes:
 
@@ -139,21 +139,21 @@ ORDER BY orders DESC
 LIMIT 20;
 ```
 
-The useful optimization question is not just “Can this SQL run?” It is “Can the system answer it from a small set of recent segments and the right indexes, without scanning or transferring unnecessary columns?” Pinot’s index and segment design are how the serving layer aims to make that shape predictable.
+The important question is not only whether Pinot can run the SQL. It is whether it can find the recent records it needs without reading or moving lots of unrelated data. Its indexes and stored data chunks are designed to make common questions faster.
 
-### Upserts and ownership by primary key
+### Keep each record’s updates with one owner
 
-The paper also discusses upserts. If multiple copies of a key can be updated on different servers, a query may see conflicting versions or require broad coordination. Uber partitions input by primary key so updates for a given key land on the same owner node, and queries for that partition route to that owner. This is a **shared-nothing** approach: partition ownership limits coordination to the server responsible for the key.
+The paper also describes **upserts**: inserting a new record or replacing an older record with the same ID. If different machines can update the same ID, they may end up with conflicting copies. Uber sends each ID to one designated machine, and sends questions about that ID to the same machine. This limits how many machines need to coordinate about one update.
 
-The simplicity depends on routing being consistent. Partitioning, query routing, and recovery all need to agree about ownership. If the partition map is stale or one node is missing, the system needs a way to recover data and direct reads without turning every query into a global lockstep operation.
+This only works if every part of the system agrees which machine owns each ID. If a machine is missing or the ownership map is out of date, Pinot needs to restore the data and route questions correctly without making every machine wait on every request.
 
-### Recover segments without a central blocking bottleneck
+### Restore data without waiting on one central service
 
-Pinot’s immutable segments can be replicated and recovered when servers change. The paper describes replacing a centralized, synchronous segment archive path with peer-to-peer, asynchronous segment recovery. This reduces the archive controller’s role as a bottleneck and avoids making a server wait on a synchronous backup step before progressing.
+Pinot stores data in **segments**, or chunks that are built and then treated as read-only. It keeps copies on different machines so it can restore a missing chunk. The paper describes moving from a central service that had to copy each chunk before work continued to a method where machines copy chunks from one another in the background. This removes some waiting on the central service.
 
-That move shifts responsibility toward replication and recovery coordination. Asynchronous recovery can improve availability and throughput, but operators still need to know which replicas are complete, how long recovery is taking, and what durability guarantees apply during the interval. Fast recovery is useful only if the system can tell a healthy replica from a missing or stale one.
+This approach still needs careful checks. Copying in the background can help the system keep running, but operators need to know which copies are ready and how long recovery takes. A fast copy is useful only if the system can tell a complete copy from one that is old or missing.
 
-![Pinot routes each primary-key update to one owning partition and restores a missing segment through asynchronous peer copy](/assets/uber-realtime-data-infrastructure/pinot-ownership.svg 'Ownership keeps reads and updates aligned; peer recovery avoids a central synchronous archive step.' dark=/assets/uber-realtime-data-infrastructure/pinot-ownership-dark.svg)
+![Pinot sends each record ID to one owner machine and restores missing data by copying it from another machine](/assets/uber-realtime-data-infrastructure/pinot-ownership.svg 'One machine owns updates for each ID; other machines can help restore its data.' dark=/assets/uber-realtime-data-infrastructure/pinot-ownership-dark.svg)
 
 ## Four workloads, four different answers
 
@@ -168,71 +168,71 @@ One of the paper’s strongest sections shows that “real time” does not impl
 {
 "label": "01 / DYNAMIC PRICING",
 "title": "Surge",
-"summary": "Flink aggregates supply and demand by geographic hexagon. Because the result feeds live price decisions, the pipeline moves forward with events it has instead of waiting for late arrivals.",
-"priority": "Freshness and availability"
+"summary": "Flink compares driver supply with ride demand in small map areas. Because prices depend on this result, the job uses the events it has instead of waiting for late ones.",
+"priority": "Quick updates, even if some data arrives late"
 },
 {
 "label": "02 / RESTAURANT DASHBOARD",
 "title": "Restaurant Manager",
-"summary": "Known page queries can be pre-aggregated in Flink and indexed in Pinot. That makes dashboard responses predictable, while limiting the freedom of ad-hoc query shapes.",
-"priority": "Low latency over query flexibility"
+"summary": "Flink calculates common totals ahead of time, and Pinot stores them for the dashboard. Pages load faster, but people have fewer options for asking new questions.",
+"priority": "Fast answers to known questions"
 },
 {
 "label": "03 / MODEL MONITORING",
 "title": "Prediction health",
-"summary": "Hundreds of thousands of time series and millions of points per second are aggregated in Flink before Pinot serves them. Summarizing early controls storage and query cost.",
-"priority": "Useful rollups over every raw point"
+"summary": "Flink summarizes hundreds of thousands of changing measurements and millions of data points per second before Pinot stores them. Keeping summaries costs less than keeping every detail ready for every query.",
+"priority": "Summaries that use less storage"
 },
 {
 "label": "04 / EATS OPERATIONS",
 "title": "Live query to action",
-"summary": "Analysts explore live Pinot data through Presto, then turn useful queries into rules and alerts. The paper cites per-region operating limits during COVID-19 response.",
-"priority": "Operational action with owned thresholds"
+"summary": "Analysts use Presto to explore live Pinot data, then turn useful answers into rules and alerts. The paper describes using this during COVID-19 to set local limits for restaurants and couriers.",
+"priority": "Turn findings into action"
 }
 ],
-"caption": "The same platform supports different freshness, flexibility, and completeness contracts instead of forcing one consistency model on every team."
+"caption": "One platform supports different needs: quick updates, fast reports, useful summaries, and alerts that help teams act."
 }
 :::
 
-## Multi-region: match failover to the business guarantee
+## Multi-region: choose how work continues after an outage
 
-For Uber, regional recovery is a business-continuity requirement. A power outage, network failure, or serious software fault must not take every real-time service offline. The paper’s foundation is multi-region Kafka: **uReplicator** copies streams between clusters, providing both a global view of events and another region from which a service can continue.
+For Uber, a failure in one region should not stop every real-time service. A **region** is a geographically separate data center. A power outage, network failure, or serious software problem can make one unavailable, so Uber keeps copies of data in more than one region. Its **uReplicator** service copies event streams between Kafka clusters. This gives each region a view of events from elsewhere and a copy to use if another region goes down.
 
-That shared data layer does not mean every application should fail over in the same way. Surge pricing uses recent driver supply and rider demand to adjust prices for small geographic areas; a delayed estimate can affect marketplace reliability, so freshness and availability matter most. Payment processing and auditing place more weight on completeness, no data loss, and a single consumer owner. Uber describes two patterns to match those different requirements.
+Different jobs still need different recovery plans. Surge pricing compares recent driver supply with rider demand in small areas, so fresh results and keeping the service available matter most. Payment processing and auditing must avoid missing or duplicated work, so they need one clear owner for processing. Uber uses two patterns to meet these needs.
 
-### Active-active: keep the Surge calculation warm
+### Active-active: keep both regions calculating
 
-Trip events enter regional Kafka clusters and are aggregated into Kafka clusters that give each region a global input stream. Each region runs its own Flink job against that stream. The large Flink state is **recomputed independently** in each region rather than synchronously copied across regions. An all-active coordinator designates one update service as the primary writer; that service stores the current price in a replicated key-value database for quick lookup.
+Trip events first go to Kafka clusters in their local regions. The events are then shared so each region can see activity from across Uber. Both regions run their own Flink job to calculate prices. A job’s **state** is the information it remembers as new events arrive, such as its current totals. Uber does not copy this large state between regions; each job builds its own copy by reading the same shared events. A coordinating service chooses one price-update service as the **primary**, meaning it is the only service allowed to write prices. That service saves each price under an area ID in a replicated lookup database so other services can find it quickly.
 
-![Active-active surge architecture: both regions compute from replicated aggregate events while one coordinator-selected update service writes prices](/assets/uber-realtime-data-infrastructure/active-active.svg 'Both regions keep the Surge pipeline warm; the coordinator selects one writer for the shared lookup store.' dark=/assets/uber-realtime-data-infrastructure/active-active-dark.svg)
+![Both regions calculate Surge prices, but only one update service writes the result](/assets/uber-realtime-data-infrastructure/active-active.svg 'Both regions keep calculating; only one writes the price, and the other can take over during an outage.' dark=/assets/uber-realtime-data-infrastructure/active-active-dark.svg)
 
-**What it solves.** If the primary region fails, the coordinator can promote the other region without first restoring the large Flink state. Because each job computes independently from the same replicated aggregate input, their output can converge as processing continues. This keeps a fresh pricing calculation available through a regional outage; it does not require both update services to write prices at once.
+**What it solves.** If the main region fails, the coordinating service can make the other region the writer. Its Flink job is already running, so Uber does not have to restart the calculation from scratch. Because both jobs read the same shared events, their price results can catch up with each other as they process updates. Only one service writes prices at a time, which avoids two services overwriting each other’s results.
 
-**Trade-off.** The warm backup is real work: Uber runs redundant, memory-heavy pipelines in every region. The approach favors availability and freshness over strict consistency, and it relies on both jobs receiving consistent aggregate input. The paper notes that late-arriving events do not contribute to the Surge calculation, another deliberate choice to keep the result timely.
+**Trade-off.** Keeping both regions ready uses more computers and memory because both price calculations run all the time. This design favors having a fresh answer over waiting for every region to agree. It also depends on both jobs receiving the same events. The paper says late events are left out of the Surge calculation so new prices can be produced quickly.
 
-### Active-passive: keep one consumer in control
+### Active-passive: let one region process at a time
 
-For payment processing and auditing, the paper describes a different contract: only one named consumer reads the aggregate Kafka stream in the primary region at a time. The other region holds replicated data and a standby service, but it does not process the same workload concurrently.
+Payment processing and auditing need a different setup. Only one named **consumer**—a service that reads events—processes the Kafka stream in the main region. The other region has a copy of the data and a waiting service, called the **standby**. It does not process the same events at the same time.
 
-![Active-passive architecture: uReplicator maps source offsets to the replicated cluster and an offset-sync job prepares the standby consumer for failover](/assets/uber-realtime-data-infrastructure/active-passive.svg 'The standby resumes from the latest synchronized offset mapping, not an arbitrary Kafka watermark.' dark=/assets/uber-realtime-data-infrastructure/active-passive-dark.svg)
+![One region processes messages while a standby region keeps a copied stream and a saved restart position](/assets/uber-realtime-data-infrastructure/active-passive.svg 'The copy and its saved position let the standby continue from the right place after an outage.' dark=/assets/uber-realtime-data-infrastructure/active-passive-dark.svg)
 
-**What it solves.** A single active consumer gives sensitive workflows one clear processing owner. Failover still needs a precise restart point: Kafka offsets belong to individual clusters, so the same offset number does not necessarily identify the same event in the replica. As uReplicator copies messages, it checkpoints source-to-destination offset mappings in an active-active database. A separate offset-sync job periodically syncs consumer progress across regions. After a failure, the standby resumes from the latest synchronized mapped offset rather than jumping to the newest record or replaying from the oldest one.
+**What it solves.** Having one active consumer avoids two services trying to process the same payment or audit event. When the main region fails, the standby needs to know where to continue. Kafka tracks reading progress with an **offset**, a number that points to a place in a stream—like a bookmark. The same number can point to different events in two Kafka clusters, so Uber keeps a map between the source cluster’s position and the copied cluster’s position. As uReplicator copies messages, it saves this map in a shared database. A separate job regularly updates the standby’s bookmark. During an outage, the standby uses the latest saved position instead of skipping ahead or starting over from the oldest event.
 
-**Trade-off.** This avoids running two active consumers, but it adds an offset-mapping store and a synchronization job to the recovery path. Because synchronization is periodic, failover depends on how current that mapping is; the promoted consumer may need to catch up from the last synchronized position. Keeping the mapping and replication healthy becomes part of the service’s correctness story.
+**Trade-off.** Only one region does the processing, but failover depends on several extra pieces: copying the data, saving the position map, and updating the standby. These updates happen periodically, so the standby may need to read some events that arrived since the last update. The service must keep both the copied data and the saved positions in good shape.
 
-These patterns solve regional failure while data is still recent and replicated. The next question is what to do when a pipeline changes after Kafka has already expired the old events. That is the **backfill** problem: how to recompute historical results from archived data without letting batch and streaming logic drift apart.
+Both patterns help a service continue after a region fails while its recent events are still available. But what if the job changes after Kafka has deleted the old events? That leads to **backfill**: rerunning a calculation over older, archived data without keeping two different versions of the calculation in sync.
 
-## Backfill: replay history without maintaining two different programs
+## Backfill: rerun old data without maintaining two programs
 
-Streaming logic changes. A bug gets fixed, a model is retrained, or a new metric is requested for historical data. If the only input is a short-retention Kafka stream, the old events may already be gone. Uber retained only a few days in Kafka in the described environment because of the data volume and cluster replacement constraints.
+Data jobs change over time. A bug is fixed, a machine-learning model is retrained, or a team asks for a new historical measure. If Kafka keeps events for only a few days, those older events may already be gone. The paper says Uber kept Kafka retention short because it handled so much data and had to replace cluster machines.
 
-The familiar **Lambda architecture** solves this by maintaining separate streaming and batch implementations. But two implementations can drift: one uses a slightly different filter or late-event rule, and the historical result no longer matches the live one.
+One common design, the **Lambda architecture**, uses one program for live data and a separate program for old data. Keeping both programs correct is hard: a filter or rule may change in one but not the other, so the old results can disagree with the live ones.
 
-The paper describes two approaches toward reusing logic. In SQL mode, the same SQL is compiled for a Kafka-backed Flink DataStream job and a Hive-backed batch DataSet job. Their **Kappa+** API reuses the streaming computation code while reading archived data from Hive. It must handle bounded start and end times, throughput throttling, out-of-order windows, and memory behavior that differ from an unbounded live stream.
+The paper describes two ways to reuse the same calculation. In SQL mode, a user writes one SQL query, and Flink turns it into a job for live Kafka data and another job for old data stored in Hive, Uber’s system for organizing archived data. Uber’s **Kappa+** approach reuses the same continuously running program but points it at that archive. The job needs a start and end time for the old data. It may also need to slow down so it can process the archive at a manageable pace. Older events can appear after newer ones, so the job may need extra memory while it waits to put them into the right time groups.
 
-![Uber’s SQL mode compiles SQL for live and batch Flink jobs, while Kappa+ reuses streaming API code against archived Hive data](/assets/uber-realtime-data-infrastructure/backfill.svg 'The two reuse paths share intent, but have different execution constraints.' dark=/assets/uber-realtime-data-infrastructure/backfill-dark.svg)
+![Flink can run one SQL query on live Kafka events or use the same streaming code to read older data from Hive](/assets/uber-realtime-data-infrastructure/backfill.svg 'The same calculation can use live events or archived records, with some settings adjusted for older data.' dark=/assets/uber-realtime-data-infrastructure/backfill-dark.svg)
 
-Here is a simplified SQL sketch showing the conceptual goal. The paper does not publish a production query or claim that every streaming construct maps directly to batch execution:
+Here is a simplified SQL example showing the idea. The paper does not provide a real production query. A query that works on a continuous stream may also need changes before it can process a fixed archive:
 
 ```sql|label=ONE LOGIC, TWO INPUTS · CONCEPTUAL
 SELECT
@@ -245,30 +245,30 @@ WHERE event_time >= TIMESTAMP '2026-10-01 00:00:00'
 GROUP BY region_id, window_start;
 ```
 
-For the live job, `trip_events` would represent an ongoing stream and windows would continue to advance. For a backfill, the input is bounded to an archived time range. The implementation still has to define event-time windows, late records, and state cleanup consistently. Reusing the text of a query is valuable only when the two execution modes preserve the same meaning.
+For the live job, `trip_events` would keep receiving new records and its time windows would keep advancing. For a backfill, the job reads only the chosen dates from the archive. Both versions still need the same rules for grouping events by time, handling late records, and resetting old totals. Sharing the query helps only if it means the same thing in both jobs.
 
-The authors describe Kappa+ as work in progress, with edge cases still under investigation and no complete evaluation in the paper. That caveat matters: it is a direction for reducing semantic drift, not evidence that arbitrary streaming jobs can be replayed as batch jobs without changes.
+The authors say Kappa+ was still being developed. The paper does not fully test it, and some unusual cases still needed work. It is a way to reduce differences between live and historical calculations, not a guarantee that every live job can run unchanged on old data.
 
-## What the paper teaches about building data platforms
+## Lessons from the paper
 
-Several lessons recur across Kafka, Flink, and Pinot:
+Several lessons appear across Kafka, Flink, and Pinot:
 
-- **Open source is a starting point.** Mature projects accelerate development, but integration, scale, and operations require platform-specific changes.
-- **Keep application clients thin.** Centralized client behavior makes upgrades and policy changes easier to roll out across many services.
-- **Treat monitoring and recovery as product features.** A platform must detect stuck jobs, replication gaps, overload, and unhealthy segments, then make recovery routine.
-- **Make cost visible.** Memory, indexes, cross-region duplication, and pre-aggregation all spend resources to improve some other property.
-- **Invest in metadata and auditing.** Schemas, ownership, lineage, and independent data checks help users trust results that move through many systems.
-- **Offer multiple levels of control.** SQL supports declarative users; APIs support engineers; dashboards and alerts make results usable by operations teams.
+- **Open-source software is a good base.** Uber could build on mature projects, then change them to fit its size and needs.
+- **Keep app code simple.** A shared client service makes updates easier than changing thousands of applications one by one.
+- **Build monitoring and recovery into the platform.** Teams need to notice stuck jobs, missing copies, and full machines, then know how to recover.
+- **Show the cost of speed.** More memory, indexes, copies across regions, and saved summaries all use extra resources.
+- **Track what data means and where it came from.** Clear definitions, owners, and independent checks help people trust the results.
+- **Give people tools that fit their work.** Analysts can use SQL, engineers can use programming tools, and operations teams can use dashboards and alerts.
 
-The authors close with future work as of 2021: more unified batch and streaming execution, stronger multi-region and multi-zone support, cloud-agnostic infrastructure, and tiered storage. These are statements of direction in that paper, not a current Uber roadmap.
+The authors’ future plans in 2021 included making live and historical jobs work together more easily, improving support across regions and data centers, working across cloud providers, and moving older data to cheaper storage. These were plans described in the paper, not a current Uber roadmap.
 
 ## My takeaway
 
-The most useful way to read this paper is as a set of boundary decisions. Kafka owns event movement and replication. Flink owns ongoing computation and state recovery. Pinot owns a narrow, fast analytical serving path. HDFS preserves a cheaper historical record. Presto gives analysts a familiar query surface. Metadata and management tools make the engines usable by a large organization.
+I read this paper as a guide to giving each part of the system one clear job. Kafka moves events between services. Flink keeps calculations up to date and can restart them after a failure. Pinot answers common questions about recent data. HDFS keeps older data, and Presto lets analysts ask questions with SQL. Shared definitions and management tools help people use all of these parts together.
 
-The architecture works by accepting that different workloads need different guarantees. Surge can ignore late data to stay fresh. A payment consumer can require one active owner and synchronized offsets. A dashboard can trade open-ended query freedom for precomputation. A backfill can reuse logic while still acknowledging that bounded historical execution has different edge cases.
+The main idea is to choose how each job should behave when trade-offs appear. Surge can ignore late events to show a fresh price. A payment job can use one active reader and a saved restart position. A dashboard can answer a few common questions quickly by calculating totals ahead of time. A backfill can reuse the live calculation while still handling old data differently.
 
-That is the deeper lesson: a real-time platform is a collection of explicit contracts. The engines matter, but so do the choices about ownership, failure, data completeness, query shape, replay, and cost. When those choices are visible, teams can select the right path for each workload instead of forcing every problem into one database or one consistency model.
+The deeper lesson is that a real-time platform is a set of choices about who owns each update, what happens during an outage, how complete the data must be, how quickly an answer is needed, and what it costs. Making those choices clear helps teams use the right tools for each job instead of forcing every problem into one database.
 
 :::source-note
 This article explains Yupeng Fu and Chinmay Soman’s 2021 SIGMOD paper. Reported volumes, benchmarks, deployments, and road-map statements are historical snapshots from the paper. Diagrams and SQL are explanatory illustrations, not production Uber assets or queries.
