@@ -9,8 +9,8 @@ keywords:
   [Uber, real-time data, Kafka, Flink, Apache Pinot, stream processing, OLAP, distributed systems]
 image: /assets/uber-realtime-data-infrastructure/cover.svg
 darkImage: /assets/uber-realtime-data-infrastructure/cover-dark.svg
-imageAlt: A stream of events moving through a real-time data platform into analytical storage
-imageCaption: A simplified view of the platform described in Fu and Soman’s 2021 paper. The diagram is an editorial illustration, not Uber’s production topology.
+imageAlt: "An abstract network of live data events moving through Uber's distributed architecture"
+imageCaption: "An abstract editorial illustration of data moving through a real-time platform."
 featuredImage: /assets/uber-realtime-data-infrastructure/featured.svg
 featuredDarkImage: /assets/uber-realtime-data-infrastructure/featured-dark.svg
 featuredImageAlt: Three regional event streams enter a federated Kafka platform and flow through Flink into Pinot, with an archive branch to HDFS

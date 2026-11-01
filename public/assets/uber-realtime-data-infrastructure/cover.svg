@@ -1,44 +1,47 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 560" role="img" aria-labelledby="title desc">
-  <title id="title">Real-time data infrastructure</title>
-  <desc id="desc">A stream of small event marks flows through Kafka, Flink, and Pinot, with a branch to historical storage.</desc>
-  <rect width="1400" height="560" fill="#f2efe6"/>
-  <path d="M48 48h1304M48 512h1304" stroke="#c9c9bf" stroke-width="2"/>
-  <g fill="#536e6c" font-family="monospace" font-size="20" letter-spacing="3">
-    <text x="62" y="87">REAL-TIME DATA / SYSTEM MAP</text>
-    <text x="1338" y="87" text-anchor="end">KAFKA · FLINK · PINOT</text>
+  <title id="title">Uber real-time data</title>
+  <desc id="desc">A quiet abstract network of events converging on a central live data system and branching to consumers.</desc>
+  <rect width="1400" height="560" fill="#f3f0e7"/>
+  <path d="M56 54h1288M56 506h1288" stroke="#d1d0c6" stroke-width="2"/>
+  <text x="72" y="94" fill="#5d706c" font-family="DM Mono, monospace" font-size="18" letter-spacing="3">UBER / REAL-TIME DATA</text>
+
+  <g fill="none" stroke="#aebdb4" stroke-width="2" stroke-linecap="round" opacity=".68">
+    <path d="M230 202c120 0 178 78 384 78"/>
+    <path d="M190 280h424"/>
+    <path d="M230 358c120 0 178-78 384-78"/>
+    <path d="M786 280c110 0 150-78 364-78"/>
+    <path d="M786 280h404"/>
+    <path d="M786 280c110 0 150 78 364 78"/>
   </g>
-  <g fill="#bd4b31">
-    <circle cx="112" cy="276" r="7"/><circle cx="146" cy="276" r="7"/><circle cx="180" cy="276" r="7"/><circle cx="214" cy="276" r="7"/>
-    <circle cx="248" cy="276" r="7"/><circle cx="282" cy="276" r="7"/><circle cx="316" cy="276" r="7"/>
+  <g fill="none" stroke="#ad442d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M258 202c120 0 164 78 356 78" opacity=".82"/>
+    <path d="M218 280h396" opacity=".82"/>
+    <path d="M258 358c120 0 164-78 356-78" opacity=".82"/>
+    <path d="M786 280c110 0 150-78 254-78" opacity=".82"/>
+    <path d="M786 280h378" opacity=".82"/>
+    <path d="M786 280c110 0 150 78 254 78" opacity=".82"/>
   </g>
-  <path d="M330 276h93m92 0h110m102 0h112m102 0h122" fill="none" stroke="#bd4b31" stroke-width="3"/>
-  <path d="m415 265 12 11-12 11M719 265l12 11-12 11M1025 265l12 11-12 11" fill="none" stroke="#bd4b31" stroke-width="3"/>
-  <g stroke="#243a3b" stroke-width="2" fill="#f6f4ed">
-    <rect x="428" y="191" width="178" height="170"/>
-    <rect x="735" y="191" width="178" height="170"/>
-    <rect x="1041" y="191" width="210" height="170"/>
+
+  <g fill="#fbf9f3" stroke="#78928d" stroke-width="2">
+    <circle cx="230" cy="202" r="9"/>
+    <circle cx="190" cy="280" r="9"/>
+    <circle cx="230" cy="358" r="9"/>
+    <circle cx="1150" cy="202" r="9"/>
+    <circle cx="1190" cy="280" r="9"/>
+    <circle cx="1150" cy="358" r="9"/>
   </g>
-  <g fill="#243a3b" font-family="monospace" text-anchor="middle">
-    <text x="517" y="247" font-size="26" letter-spacing="2">KAFKA</text>
-    <text x="824" y="247" font-size="26" letter-spacing="2">FLINK</text>
-    <text x="1146" y="247" font-size="26" letter-spacing="2">PINOT</text>
-    <text x="517" y="287" font-size="14" fill="#536e6c">EVENT LOG</text>
-    <text x="824" y="287" font-size="14" fill="#536e6c">STATE + COMPUTE</text>
-    <text x="1146" y="287" font-size="14" fill="#536e6c">LIVE ANALYTICS</text>
+  <g fill="#ad442d">
+    <circle cx="342" cy="224" r="5"/>
+    <circle cx="324" cy="280" r="5"/>
+    <circle cx="342" cy="336" r="5"/>
+    <circle cx="1054" cy="224" r="5"/>
+    <circle cx="1076" cy="280" r="5"/>
+    <circle cx="1054" cy="336" r="5"/>
   </g>
-  <g fill="#78928d">
-    <rect x="469" y="316" width="15" height="15"/><rect x="492" y="316" width="15" height="15"/><rect x="515" y="316" width="15" height="15"/><rect x="538" y="316" width="15" height="15"/><rect x="561" y="316" width="15" height="15"/>
-    <rect x="778" y="316" width="15" height="15"/><rect x="801" y="316" width="15" height="15"/><rect x="824" y="316" width="15" height="15"/><rect x="847" y="316" width="15" height="15"/><rect x="870" y="316" width="15" height="15"/>
-    <rect x="1080" y="316" width="15" height="15"/><rect x="1103" y="316" width="15" height="15"/><rect x="1126" y="316" width="15" height="15"/><rect x="1149" y="316" width="15" height="15"/><rect x="1172" y="316" width="15" height="15"/>
-  </g>
-  <path d="M517 361v60h627v-60" fill="none" stroke="#9daaa2" stroke-width="2" stroke-dasharray="6 8"/>
-  <path d="M824 361v60" fill="none" stroke="#9daaa2" stroke-width="2" stroke-dasharray="6 8"/>
-  <rect x="648" y="409" width="366" height="64" fill="#e8e5db" stroke="#c9c9bf" stroke-width="2"/>
-  <g fill="#536e6c" font-family="monospace" text-anchor="middle">
-    <text x="831" y="437" font-size="16" letter-spacing="2">HDFS / PARQUET</text>
-    <text x="831" y="459" font-size="12">ARCHIVE · REPLAY · HISTORY</text>
-  </g>
-  <g fill="#536e6c" font-family="monospace" font-size="14" letter-spacing="2">
-    <text x="62" y="473">FRESHNESS</text><text x="62" y="495" fill="#bd4b31">SECONDS → QUERYABLE</text>
-  </g>
+
+  <circle cx="700" cy="280" r="118" fill="#e9e5da" opacity=".72"/>
+  <circle cx="700" cy="280" r="86" fill="none" stroke="#c7c9bf" stroke-width="2"/>
+  <circle cx="700" cy="280" r="60" fill="#f3f0e7" stroke="#536e6c" stroke-width="2"/>
+  <circle cx="700" cy="280" r="17" fill="#ad442d"/>
+  <circle cx="700" cy="280" r="5" fill="#fff8f0"/>
 </svg>
