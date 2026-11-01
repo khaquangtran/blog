@@ -108,10 +108,11 @@ export function Header({ dark, setDark }) {
 
   return (
     <header className="topbar">
-      <Link className="brand" to="/">
-        <span>
+      <Link className="brand" to="/" aria-label="Kha Trần home">
+        <span className="brand-wordmark" aria-hidden="true">
           KHA<span className="brand-dot">.</span>TRAN
         </span>
+        <img className="brand-mark" src="/assets/favicon.svg" alt="" />
       </Link>
       <nav className={menu ? 'nav open' : 'nav'}>
         <NavLink to="/" end>

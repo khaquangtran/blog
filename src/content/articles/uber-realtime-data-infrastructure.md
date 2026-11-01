@@ -194,23 +194,70 @@ One of the paper’s strongest sections shows that “real time” does not impl
 
 ## Multi-region: active-active and active-passive solve different problems
 
-Regional redundancy sounds simple until events, state, and writes must converge after a failure. The paper describes two patterns because its workloads have different consistency requirements.
+Uber uses two regional patterns because Surge and payment processing need different failure behavior. One keeps both regions computing; the other preserves a single active consumer and gives its standby a mapped restart position.
 
-![Active-active processing keeps pricing available in regions while active-passive processing uses synchronized offsets for a single active consumer](/assets/uber-realtime-data-infrastructure/regions.svg 'The region strategy follows the workload’s consistency needs.' dark=/assets/uber-realtime-data-infrastructure/regions-dark.svg)
+:::figure
+{
+"variant": "region-patterns",
+"eyebrow": "07 / MULTI-REGION",
+"label": "TWO DIFFERENT FAILURE CONTRACTS",
+"patterns": [
+{
+"kind": "active-active",
+"label": "A / ACTIVE-ACTIVE",
+"title": "Surge pricing",
+"workload": "CONTINUOUS LOCAL COMPUTE",
+"input": "SAME REPLICATED INPUT",
+"regions": ["REGION A · FLINK", "REGION B · FLINK"],
+"primary": "ONE PRIMARY PRICE WRITER",
+"details": [
+{
+"label": "STATE",
+"text": "Each region recomputes its own Flink state; the large state is not copied across regions."
+},
+{
+"label": "FAILURE",
+"text": "Both regions keep calculating from replicated input, while one primary updater owns writes."
+},
+{
+"label": "COST",
+"text": "Duplicated compute buys local continuity."
+}
+]
+},
+{
+"kind": "active-passive",
+"label": "B / ACTIVE-PASSIVE",
+"title": "Payment and audit",
+"workload": "ONE ACTIVE CONSUMER",
+"source": "SOURCE · ACTIVE",
+"replicator": "UREPLICATOR",
+"destination": "DESTINATION · STANDBY",
+"sourceOffset": "SOURCE OFFSET",
+"offsetSync": "OFFSET SYNC",
+"destinationOffset": "DEST OFFSET",
+"failover": "On failure, start from the last synchronized destination offset.",
+"details": [
+{
+"label": "POSITION",
+"text": "Offset sync maps source progress into the destination cluster’s offset space."
+},
+{
+"label": "FAILURE",
+"text": "The standby takes over from the latest mapped position; work since that sync may be replayed."
+},
+{
+"label": "COST",
+"text": "A single ordered owner simplifies processing, but takeover depends on accurate offset mapping."
+}
+]
+}
+],
+"caption": "Active-active pays for duplicate compute to keep regional jobs running. Active-passive keeps one consumer active and makes synchronized offsets part of failover."
+}
+:::
 
-### Active-active for Surge
-
-For Surge, each region can consume replicated input and run its own Flink pipeline. Independent processing avoids relying on one remote region for every price update. The outputs converge through an aggregated stream, while one designated update service acts as primary for writing the pricing result.
-
-This keeps the decision path available, but it duplicates Flink work and compute cost. The paper notes that Uber does not replicate the large Flink state across regions in this pattern; each region recomputes from the stream. That only works if the inputs and computations can produce compatible outputs and the update boundary avoids conflicting writes.
-
-### Active-passive for strong-consistency workloads
-
-Payment or audit processing may require one uniquely identified consumer to be active. A passive region is ready to take over, but it must know which source offset has already been processed. uReplicator checkpoints and an offset synchronization job map progress from the source cluster to the destination cluster.
-
-After failover, the new active consumer starts from the latest synchronized offset. Without that mapping, it may replay a backlog or skip events. The offset is therefore part of the failover protocol, not just bookkeeping. The system trades some independent regional work for a clearer single-writer history.
-
-These modes answer different questions. Active-active asks, “Can regions keep calculating through a regional failure?” Active-passive asks, “Can one ordered consumer resume at a known point without double-processing or losing data?” Availability alone does not settle which answer a business workflow needs.
+These are not interchangeable deployment modes. Surge can trade extra compute for continued local estimates; payment and audit workflows trade that parallelism for a single ordered consumer and an offset-aware takeover.
 
 ## Backfill: replay history without maintaining two different programs
 

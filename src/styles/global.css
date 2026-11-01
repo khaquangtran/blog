@@ -142,6 +142,9 @@
   .brand-dot {
     @apply text-accent;
   }
+  .brand-mark {
+    @apply hidden;
+  }
   .nav {
     @apply flex;
     @apply gap-[42px];
@@ -538,6 +541,16 @@
     }
     .brand {
       @apply text-[13px];
+      @apply w-[30px];
+      @apply justify-center;
+      @apply gap-0;
+    }
+    .brand-wordmark {
+      @apply hidden;
+    }
+    .brand-mark {
+      @apply block;
+      @apply w-[30px] h-[30px];
     }
     .nav {
       @apply hidden;
@@ -3873,6 +3886,143 @@
     @apply [font:500_10px/1.5_var(--mono)];
     @apply text-ink;
   }
+  .article-figure--region-patterns {
+    @apply border-0;
+    @apply [background:transparent];
+    @apply p-0;
+  }
+  .article-figure--region-patterns .figure-header {
+    @apply mb-[10px];
+    @apply border-0;
+    @apply pb-0;
+  }
+  .figure-region-compare {
+    @apply grid;
+    @apply grid-cols-2;
+    @apply border-y border-line;
+  }
+  .figure-region-column {
+    @apply min-w-0;
+    @apply py-[16px] px-[18px];
+  }
+  .figure-region-column:first-child {
+    @apply border-r border-line;
+    @apply pl-0;
+  }
+  .figure-region-column:last-child {
+    @apply pr-0;
+  }
+  .figure-region-column > header {
+    @apply grid;
+    @apply gap-[5px];
+    @apply min-h-[82px];
+  }
+  .figure-region-column > header > span {
+    @apply [font:7px_var(--mono)];
+    @apply tracking-[0.09em];
+    @apply text-accent;
+  }
+  .figure-region-column > header > h3 {
+    @apply text-ink;
+    @apply m-0;
+    @apply [font:500_21px/1.2_'DM_Sans',_Arial,_sans-serif];
+    @apply tracking-[-0.035em];
+  }
+  .figure-region-column > header > small {
+    @apply [font:7px_var(--mono)];
+    @apply tracking-[0.06em];
+    @apply text-muted;
+  }
+  .figure-region-diagram {
+    @apply grid;
+    @apply content-center;
+    @apply gap-[7px];
+    @apply min-h-[154px];
+    @apply border-y border-line;
+    @apply py-[11px] px-0;
+    @apply my-[11px] mx-0;
+  }
+  .figure-region-node {
+    @apply flex;
+    @apply min-w-0;
+    @apply items-center;
+    @apply justify-center;
+    @apply border border-line;
+    @apply bg-panel;
+    @apply min-h-[35px];
+    @apply py-[7px] px-[5px];
+    @apply text-center;
+    @apply text-ink;
+    @apply [font:8px/1.35_var(--mono)];
+  }
+  .figure-region-node--wide {
+    @apply w-full;
+    @apply border-accent;
+  }
+  .figure-region-node--primary {
+    @apply border-accent;
+    @apply text-accent;
+  }
+  .figure-region-down {
+    @apply text-center;
+    @apply text-accent;
+    @apply [font:12px/1_var(--mono)];
+  }
+  .figure-region-branches {
+    @apply grid;
+    @apply grid-cols-2;
+    @apply gap-[7px];
+  }
+  .figure-region-flow-note,
+  .figure-region-lane-label {
+    @apply [font:6px_var(--mono)];
+    @apply tracking-[0.08em];
+    @apply text-muted;
+  }
+  .figure-region-flow-note {
+    @apply text-center;
+  }
+  .figure-region-route {
+    @apply grid;
+    @apply grid-cols-[minmax(0,_1fr)_12px_minmax(0,_0.8fr)_12px_minmax(0,_1fr)];
+    @apply items-center;
+    @apply gap-[4px];
+  }
+  .figure-region-route > span {
+    @apply text-center;
+    @apply text-accent;
+    @apply [font:11px_var(--mono)];
+  }
+  .figure-region-route--offsets {
+    @apply grid-cols-[minmax(0,_1fr)_10px_minmax(0,_0.9fr)_10px_minmax(0,_1fr)];
+  }
+  .figure-region-failover {
+    @apply border-t border-line;
+    @apply pt-[7px];
+    @apply mt-[2px] mx-0 mb-0;
+    @apply text-accent;
+    @apply [font:7px/1.5_var(--mono)];
+  }
+  .figure-region-column > dl {
+    @apply grid;
+    @apply gap-[8px];
+    @apply m-0;
+  }
+  .figure-region-column > dl > div {
+    @apply grid;
+    @apply grid-cols-[54px_minmax(0,_1fr)];
+    @apply gap-[8px];
+  }
+  .figure-region-column dt {
+    @apply [font:6px_var(--mono)];
+    @apply tracking-[0.06em];
+    @apply text-muted;
+  }
+  .figure-region-column dd {
+    @apply m-0;
+    @apply text-muted;
+    @apply [font:9px/1.55_Georgia,_'Times_New_Roman',_serif];
+  }
   @media (max-width: 650px) {
     .search-overlay {
       @apply [place-items:start_center];
@@ -3914,6 +4064,19 @@
     }
     .figure-case-card {
       @apply p-[15px];
+    }
+    .figure-region-compare {
+      @apply grid-cols-1;
+    }
+    .figure-region-column {
+      @apply px-0;
+    }
+    .figure-region-column:first-child {
+      @apply border-r-0;
+      @apply border-b border-line;
+    }
+    .figure-region-column > header {
+      @apply min-h-0;
     }
   }
   @media (prefers-reduced-motion: reduce) {
