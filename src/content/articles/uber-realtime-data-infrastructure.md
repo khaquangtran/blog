@@ -66,7 +66,9 @@ This federation lets the platform move topics between clusters while they are li
 
 ### Thin clients and push-based consumption
 
-The **Consumer Proxy** moves consumer-library complexity into a platform service. A generated, thin gRPC client connects to the proxy, which dispatches messages to consumers. The paper argues that this push-oriented design helps with concurrency and gives the platform one place to handle retries and client compatibility. Applications need less Kafka-specific code, while the platform can roll out client behavior centrally.
+The **Consumer Proxy** moves consumer-library complexity into a platform service. A generated, thin gRPC client connects to the proxy, which dispatches messages to consumers. The paper argues that this push-oriented design helps with concurrency and gives the platform one place to handle retries and client compatibility. Applications need less Kafka-specific code. Instead, they specify what they need to consume, such as the topics they are interested in, while the platform can roll out client behavior centrally.
+
+More importantly, this design decouples application consumers from Kafka's partition limit. The proxy consumes from Kafka and fans messages out to many application clients, allowing the application layer to scale independently of Kafka's partitions.
 
 The trade is another service on the data path. A proxy can standardize access and improve operability, but it needs its own capacity planning, monitoring, and failure handling. Abstraction reduces the number of ways every application can make a mistake; it does not make the underlying failure modes disappear.
 
@@ -256,6 +258,12 @@ Uber uses two regional patterns because Surge and payment processing need differ
 "caption": "Active-active pays for duplicate compute to keep regional jobs running. Active-passive keeps one consumer active and makes synchronized offsets part of failover."
 }
 :::
+
+The **active-active** approach keeps both regions running and continuously computing, even though only one region's output is treated as the source of truth at a given time. If the primary region fails, the coordinator can promote the other region and use its already-running computation.
+
+On the other hand, the **active-passive** approach keeps only one region actively processing the workload while the other remains on standby. An offset synchronization process periodically records how far the active region has progressed. If the primary fails, the standby can start from the latest synchronized position and continue processing.
+
+The active-active approach trades higher compute cost for **faster recovery and regional continuity**, since the backup region is already doing the work. Active-passive reduces compute cost but **makes failover more dependent on the standby catching up**, and some work may need to be replayed from the last synchronized position.
 
 These are not interchangeable deployment modes. Surge can trade extra compute for continued local estimates; payment and audit workflows trade that parallelism for a single ordered consumer and an offset-aware takeover.
 
