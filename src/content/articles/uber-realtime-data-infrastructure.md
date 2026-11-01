@@ -10,7 +10,7 @@ keywords:
 image: /assets/uber-realtime-data-infrastructure/cover.svg
 darkImage: /assets/uber-realtime-data-infrastructure/cover-dark.svg
 imageAlt: "An abstract network of live data events moving through Uber's distributed architecture"
-imageCaption: "An abstract editorial illustration of data moving through a real-time platform."
+imageCaption: 'An abstract editorial illustration of data moving through a real-time platform.'
 featuredImage: /assets/uber-realtime-data-infrastructure/featured.svg
 featuredDarkImage: /assets/uber-realtime-data-infrastructure/featured-dark.svg
 featuredImageAlt: Three regional event streams enter a federated Kafka platform and flow through Flink into Pinot, with an archive branch to HDFS
@@ -194,78 +194,33 @@ One of the paper’s strongest sections shows that “real time” does not impl
 }
 :::
 
-## Multi-region: active-active and active-passive solve different problems
+## Multi-region: match failover to the business guarantee
 
-Uber uses two regional patterns because Surge and payment processing need different failure behavior. One keeps both regions computing; the other preserves a single active consumer and gives its standby a mapped restart position.
+For Uber, regional recovery is a business-continuity requirement. A power outage, network failure, or serious software fault must not take every real-time service offline. The paper’s foundation is multi-region Kafka: **uReplicator** copies streams between clusters, providing both a global view of events and another region from which a service can continue.
 
-:::figure
-{
-"variant": "region-patterns",
-"eyebrow": "07 / MULTI-REGION",
-"label": "TWO DIFFERENT FAILURE CONTRACTS",
-"patterns": [
-{
-"kind": "active-active",
-"label": "A / ACTIVE-ACTIVE",
-"title": "Surge pricing",
-"workload": "CONTINUOUS LOCAL COMPUTE",
-"input": "SAME REPLICATED INPUT",
-"regions": ["REGION A · FLINK", "REGION B · FLINK"],
-"primary": "ONE PRIMARY PRICE WRITER",
-"details": [
-{
-"label": "STATE",
-"text": "Each region recomputes its own Flink state; the large state is not copied across regions."
-},
-{
-"label": "FAILURE",
-"text": "Both regions keep calculating from replicated input, while one primary updater owns writes."
-},
-{
-"label": "COST",
-"text": "Duplicated compute buys local continuity."
-}
-]
-},
-{
-"kind": "active-passive",
-"label": "B / ACTIVE-PASSIVE",
-"title": "Payment and audit",
-"workload": "ONE ACTIVE CONSUMER",
-"source": "SOURCE · ACTIVE",
-"replicator": "UREPLICATOR",
-"destination": "DESTINATION · STANDBY",
-"sourceOffset": "SOURCE OFFSET",
-"offsetSync": "OFFSET SYNC",
-"destinationOffset": "DEST OFFSET",
-"failover": "On failure, start from the last synchronized destination offset.",
-"details": [
-{
-"label": "POSITION",
-"text": "Offset sync maps source progress into the destination cluster’s offset space."
-},
-{
-"label": "FAILURE",
-"text": "The standby takes over from the latest mapped position; work since that sync may be replayed."
-},
-{
-"label": "COST",
-"text": "A single ordered owner simplifies processing, but takeover depends on accurate offset mapping."
-}
-]
-}
-],
-"caption": "Active-active pays for duplicate compute to keep regional jobs running. Active-passive keeps one consumer active and makes synchronized offsets part of failover."
-}
-:::
+That shared data layer does not mean every application should fail over in the same way. Surge pricing uses recent driver supply and rider demand to adjust prices for small geographic areas; a delayed estimate can affect marketplace reliability, so freshness and availability matter most. Payment processing and auditing place more weight on completeness, no data loss, and a single consumer owner. Uber describes two patterns to match those different requirements.
 
-The **active-active** approach keeps both regions running and continuously computing, even though only one region's output is treated as the source of truth at a given time. If the primary region fails, the coordinator can promote the other region and use its already-running computation.
+### Active-active: keep the Surge calculation warm
 
-On the other hand, the **active-passive** approach keeps only one region actively processing the workload while the other remains on standby. An offset synchronization process periodically records how far the active region has progressed. If the primary fails, the standby can start from the latest synchronized position and continue processing.
+Trip events enter regional Kafka clusters and are aggregated into Kafka clusters that give each region a global input stream. Each region runs its own Flink job against that stream. The large Flink state is **recomputed independently** in each region rather than synchronously copied across regions. An all-active coordinator designates one update service as the primary writer; that service stores the current price in a replicated key-value database for quick lookup.
 
-The active-active approach trades higher compute cost for **faster recovery and regional continuity**, since the backup region is already doing the work. Active-passive reduces compute cost but **makes failover more dependent on the standby catching up**, and some work may need to be replayed from the last synchronized position.
+![Active-active surge architecture: both regions compute from replicated aggregate events while one coordinator-selected update service writes prices](/assets/uber-realtime-data-infrastructure/active-active.svg 'Both regions keep the Surge pipeline warm; the coordinator selects one writer for the shared lookup store.' dark=/assets/uber-realtime-data-infrastructure/active-active-dark.svg)
 
-These are not interchangeable deployment modes. Surge can trade extra compute for continued local estimates; payment and audit workflows trade that parallelism for a single ordered consumer and an offset-aware takeover.
+**What it solves.** If the primary region fails, the coordinator can promote the other region without first restoring the large Flink state. Because each job computes independently from the same replicated aggregate input, their output can converge as processing continues. This keeps a fresh pricing calculation available through a regional outage; it does not require both update services to write prices at once.
+
+**Trade-off.** The warm backup is real work: Uber runs redundant, memory-heavy pipelines in every region. The approach favors availability and freshness over strict consistency, and it relies on both jobs receiving consistent aggregate input. The paper notes that late-arriving events do not contribute to the Surge calculation, another deliberate choice to keep the result timely.
+
+### Active-passive: keep one consumer in control
+
+For payment processing and auditing, the paper describes a different contract: only one named consumer reads the aggregate Kafka stream in the primary region at a time. The other region holds replicated data and a standby service, but it does not process the same workload concurrently.
+
+![Active-passive architecture: uReplicator maps source offsets to the replicated cluster and an offset-sync job prepares the standby consumer for failover](/assets/uber-realtime-data-infrastructure/active-passive.svg 'The standby resumes from the latest synchronized offset mapping, not an arbitrary Kafka watermark.' dark=/assets/uber-realtime-data-infrastructure/active-passive-dark.svg)
+
+**What it solves.** A single active consumer gives sensitive workflows one clear processing owner. Failover still needs a precise restart point: Kafka offsets belong to individual clusters, so the same offset number does not necessarily identify the same event in the replica. As uReplicator copies messages, it checkpoints source-to-destination offset mappings in an active-active database. A separate offset-sync job periodically syncs consumer progress across regions. After a failure, the standby resumes from the latest synchronized mapped offset rather than jumping to the newest record or replaying from the oldest one.
+
+**Trade-off.** This avoids running two active consumers, but it adds an offset-mapping store and a synchronization job to the recovery path. Because synchronization is periodic, failover depends on how current that mapping is; the promoted consumer may need to catch up from the last synchronized position. Keeping the mapping and replication healthy becomes part of the service’s correctness story.
+
+These patterns solve regional failure while data is still recent and replicated. The next question is what to do when a pipeline changes after Kafka has already expired the old events. That is the **backfill** problem: how to recompute historical results from archived data without letting batch and streaming logic drift apart.
 
 ## Backfill: replay history without maintaining two different programs
 

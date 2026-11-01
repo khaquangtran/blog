@@ -245,72 +245,6 @@ function CaseGridFigure({ figure }) {
   )
 }
 
-function RegionalPatternsFigure({ figure }) {
-  return (
-    <div className="figure-region-compare">
-      {figure.patterns?.map((pattern) => (
-        <section className="figure-region-column" key={pattern.label}>
-          <header>
-            <span>{pattern.label}</span>
-            <h3>{pattern.title}</h3>
-            <small>{pattern.workload}</small>
-          </header>
-          {pattern.kind === 'active-active' ? (
-            <div className="figure-region-diagram">
-              <div className="figure-region-node figure-region-node--wide">{pattern.input}</div>
-              <span className="figure-region-down" aria-hidden="true">
-                ↓
-              </span>
-              <div className="figure-region-branches">
-                {pattern.regions.map((region) => (
-                  <div className="figure-region-node" key={region}>
-                    {region}
-                  </div>
-                ))}
-              </div>
-              <span className="figure-region-flow-note">STATE RECOMPUTED IN EACH REGION</span>
-              <span className="figure-region-down" aria-hidden="true">
-                ↓
-              </span>
-              <div className="figure-region-node figure-region-node--primary">
-                {pattern.primary}
-              </div>
-            </div>
-          ) : (
-            <div className="figure-region-diagram">
-              <span className="figure-region-lane-label">EVENTS</span>
-              <div className="figure-region-route">
-                <div className="figure-region-node">{pattern.source}</div>
-                <span aria-hidden="true">→</span>
-                <div className="figure-region-node">{pattern.replicator}</div>
-                <span aria-hidden="true">→</span>
-                <div className="figure-region-node">{pattern.destination}</div>
-              </div>
-              <span className="figure-region-lane-label">CONSUMER POSITION</span>
-              <div className="figure-region-route figure-region-route--offsets">
-                <div className="figure-region-node">{pattern.sourceOffset}</div>
-                <span aria-hidden="true">→</span>
-                <div className="figure-region-node">{pattern.offsetSync}</div>
-                <span aria-hidden="true">→</span>
-                <div className="figure-region-node">{pattern.destinationOffset}</div>
-              </div>
-              <p className="figure-region-failover">{pattern.failover}</p>
-            </div>
-          )}
-          <dl>
-            {pattern.details?.map((detail) => (
-              <div key={detail.label}>
-                <dt>{detail.label}</dt>
-                <dd>{detail.text}</dd>
-              </div>
-            ))}
-          </dl>
-        </section>
-      ))}
-    </div>
-  )
-}
-
 const figureVariants = {
   comparison: ComparisonFigure,
   flow: FlowFigure,
@@ -318,7 +252,6 @@ const figureVariants = {
   capacity: CapacityFigure,
   metrics: MetricsFigure,
   'case-grid': CaseGridFigure,
-  'region-patterns': RegionalPatternsFigure,
 }
 
 export function ArticleFigure({ figure }) {

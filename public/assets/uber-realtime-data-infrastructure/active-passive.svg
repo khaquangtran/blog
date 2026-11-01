@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 700" role="img" aria-labelledby="title desc">
+  <title id="title">Active-passive Kafka consumption across two Uber regions</title>
+  <desc id="desc">One region consumes from aggregate Kafka while the other remains on standby. uReplicator copies events and records offset mappings; an offset-sync job prepares the standby to resume from the latest mapped position after failover.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 8 4 0 8z" fill="#ad442d"/></marker>
+    <marker id="arrow-muted" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 8 4 0 8z" fill="#78928d"/></marker>
+  </defs>
+  <rect width="1120" height="700" fill="#f3f0e7"/>
+  <path d="M56 60h1008M56 644h1008" stroke="#d1d0c6" stroke-width="2"/>
+  <g fill="#536e6c" font-family="DM Mono,monospace" font-size="16" letter-spacing="2">
+    <text x="64" y="43">PAYMENT + AUDIT / ACTIVE-PASSIVE</text>
+    <text x="1056" y="43" text-anchor="end">ONE CONSUMER OWNER</text>
+  </g>
+
+  <g fill="#fbf9f3" stroke="#c9c9bf" stroke-width="2">
+    <rect x="56" y="90" width="420" height="420"/>
+    <rect x="644" y="90" width="420" height="420"/>
+  </g>
+  <g font-family="DM Mono,monospace" font-size="12" letter-spacing="1.5">
+    <text x="82" y="124" fill="#ad442d">REGION A · ACTIVE</text>
+    <text x="670" y="124" fill="#5d706c">REGION B · STANDBY</text>
+  </g>
+
+  <g fill="#f3f0e7" stroke="#aebdb4" stroke-width="2">
+    <rect x="128" y="150" width="276" height="60"/>
+    <rect x="128" y="270" width="276" height="60" stroke="#ad442d"/>
+    <rect x="128" y="390" width="276" height="60"/>
+    <rect x="716" y="150" width="276" height="60"/>
+    <rect x="716" y="270" width="276" height="60"/>
+    <rect x="716" y="390" width="276" height="60"/>
+  </g>
+  <g fill="#1e302f" font-family="DM Sans,Arial,sans-serif" text-anchor="middle">
+    <text x="266" y="176" font-size="16" font-weight="600">Aggregate Kafka</text>
+    <text x="266" y="195" font-size="11" fill="#5d706c">source cluster</text>
+    <text x="266" y="296" font-size="16" font-weight="600">Payment / audit consumer</text>
+    <text x="266" y="315" font-size="11" fill="#ad442d">ACTIVE · SINGLE OWNER</text>
+    <text x="266" y="416" font-size="16" font-weight="600">Offset manager</text>
+    <text x="266" y="435" font-size="11" fill="#5d706c">tracks source progress</text>
+
+    <text x="854" y="176" font-size="16" font-weight="600">Aggregate Kafka</text>
+    <text x="854" y="195" font-size="11" fill="#5d706c">replicated destination</text>
+    <text x="854" y="296" font-size="16" font-weight="600">Standby consumer</text>
+    <text x="854" y="315" font-size="11" fill="#5d706c">WAITING · NOT PROCESSING</text>
+    <text x="854" y="416" font-size="16" font-weight="600">Offset manager</text>
+    <text x="854" y="435" font-size="11" fill="#5d706c">holds mapped position</text>
+  </g>
+
+  <g fill="none" stroke="#78928d" stroke-width="2" marker-end="url(#arrow-muted)">
+    <path d="M266 210v52"/>
+    <path d="M266 330v52"/>
+    <path d="M854 210v52" stroke-dasharray="5 5"/>
+    <path d="M854 330v52" stroke-dasharray="5 5"/>
+  </g>
+
+  <g fill="#f3f0e7" stroke="#ad442d" stroke-width="2">
+    <rect x="490" y="155" width="140" height="50"/>
+    <rect x="490" y="395" width="140" height="50"/>
+  </g>
+  <g fill="#1e302f" font-family="DM Mono,monospace" text-anchor="middle">
+    <text x="560" y="176" font-size="12" font-weight="500">uReplicator</text>
+    <text x="560" y="192" font-size="9" fill="#5d706c">copies + maps offsets</text>
+    <text x="560" y="416" font-size="11" font-weight="500">OFFSET-SYNC JOB</text>
+    <text x="560" y="432" font-size="9" fill="#5d706c">maps consumer progress</text>
+  </g>
+  <path d="M404 180h80m152 0h80" fill="none" stroke="#ad442d" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M404 420h80m152 0h80" fill="none" stroke="#78928d" stroke-width="2" marker-end="url(#arrow-muted)"/>
+  <path d="M404 300h312" fill="none" stroke="#ad442d" stroke-width="2" stroke-dasharray="6 6" marker-end="url(#arrow)"/>
+  <rect x="507" y="280" width="106" height="22" fill="#f3f0e7"/>
+  <text x="560" y="295" text-anchor="middle" fill="#ad442d" font-family="DM Mono,monospace" font-size="9" letter-spacing=".8">FAILOVER</text>
+
+  <g fill="#e9e5da" stroke="#c9c9bf" stroke-width="2">
+    <rect x="188" y="548" width="744" height="64"/>
+  </g>
+  <text x="560" y="573" text-anchor="middle" fill="#ad442d" font-family="DM Mono,monospace" font-size="10" letter-spacing="1.2">ACTIVE-ACTIVE OFFSET DATABASE</text>
+  <text x="560" y="595" text-anchor="middle" fill="#1e302f" font-family="DM Sans,Arial,sans-serif" font-size="13">source offset → destination offset · resume at the latest synchronized position</text>
+  <text x="560" y="675" text-anchor="middle" fill="#5d706c" font-family="DM Mono,monospace" font-size="11" letter-spacing=".5">CLUSTER-LOCAL OFFSETS MUST BE MAPPED BEFORE A STANDBY CAN TAKE OVER</text>
+</svg>

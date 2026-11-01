@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 700" role="img" aria-labelledby="title desc">
+  <title id="title">Active-active Surge pricing across two Uber regions</title>
+  <desc id="desc">Each region runs its own Kafka and Flink pipeline from replicated aggregate events. One coordinator-selected update service writes prices to a replicated key-value store; the other is ready to take over.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 8 4 0 8z" fill="#ad442d"/></marker>
+    <marker id="arrow-muted" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 8 4 0 8z" fill="#78928d"/></marker>
+  </defs>
+  <rect width="1120" height="700" fill="#f3f0e7"/>
+  <path d="M56 60h1008M56 644h1008" stroke="#d1d0c6" stroke-width="2"/>
+  <g fill="#536e6c" font-family="DM Mono,monospace" font-size="16" letter-spacing="2">
+    <text x="64" y="43">SURGE PRICING / ACTIVE-ACTIVE</text>
+    <text x="1056" y="43" text-anchor="end">FRESHNESS · CONTINUITY</text>
+  </g>
+
+  <g fill="#fbf9f3" stroke="#c9c9bf" stroke-width="2">
+    <rect x="56" y="90" width="420" height="430"/>
+    <rect x="644" y="90" width="420" height="430"/>
+  </g>
+  <g fill="#ad442d" font-family="DM Mono,monospace" font-size="12" letter-spacing="1.5">
+    <text x="82" y="124">REGION A</text>
+    <text x="670" y="124">REGION B</text>
+  </g>
+
+  <g fill="#f3f0e7" stroke="#aebdb4" stroke-width="2">
+    <rect x="128" y="150" width="276" height="56"/>
+    <rect x="128" y="248" width="276" height="56"/>
+    <rect x="128" y="346" width="276" height="56"/>
+    <rect x="128" y="444" width="276" height="56"/>
+    <rect x="716" y="150" width="276" height="56"/>
+    <rect x="716" y="248" width="276" height="56"/>
+    <rect x="716" y="346" width="276" height="56"/>
+    <rect x="716" y="444" width="276" height="56"/>
+  </g>
+  <g fill="#1e302f" font-family="DM Sans,Arial,sans-serif" text-anchor="middle">
+    <text x="266" y="175" font-size="16" font-weight="600">Regional Kafka</text>
+    <text x="266" y="193" font-size="11" fill="#5d706c">trip events from this region</text>
+    <text x="266" y="273" font-size="16" font-weight="600">Aggregate Kafka</text>
+    <text x="266" y="291" font-size="11" fill="#5d706c">global event view</text>
+    <text x="266" y="371" font-size="16" font-weight="600">Flink job</text>
+    <text x="266" y="389" font-size="11" fill="#5d706c">state recomputed locally</text>
+    <text x="266" y="469" font-size="16" font-weight="600">Update service</text>
+    <text x="266" y="487" font-size="11" fill="#ad442d">PRIMARY · WRITES PRICE</text>
+
+    <text x="854" y="175" font-size="16" font-weight="600">Regional Kafka</text>
+    <text x="854" y="193" font-size="11" fill="#5d706c">trip events from this region</text>
+    <text x="854" y="273" font-size="16" font-weight="600">Aggregate Kafka</text>
+    <text x="854" y="291" font-size="11" fill="#5d706c">global event view</text>
+    <text x="854" y="371" font-size="16" font-weight="600">Flink job</text>
+    <text x="854" y="389" font-size="11" fill="#5d706c">state recomputed locally</text>
+    <text x="854" y="469" font-size="16" font-weight="600">Update service</text>
+    <text x="854" y="487" font-size="11" fill="#5d706c">READY · PROMOTABLE</text>
+  </g>
+
+  <g fill="none" stroke="#78928d" stroke-width="2" marker-end="url(#arrow-muted)">
+    <path d="M266 206v34"/>
+    <path d="M266 304v34"/>
+    <path d="M266 402v34"/>
+    <path d="M854 206v34"/>
+    <path d="M854 304v34"/>
+    <path d="M854 402v34"/>
+  </g>
+
+  <g fill="#f3f0e7" stroke="#ad442d" stroke-width="2">
+    <rect x="490" y="251" width="140" height="50"/>
+  </g>
+  <g fill="#1e302f" font-family="DM Mono,monospace" text-anchor="middle">
+    <text x="560" y="272" font-size="12" font-weight="500">uReplicator</text>
+    <text x="560" y="288" font-size="9" fill="#5d706c">replicates streams</text>
+  </g>
+  <path d="M404 276h80m152 0h80" fill="none" stroke="#ad442d" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M716 284h-80m-152 0h-80" fill="none" stroke="#ad442d" stroke-width="1.5" opacity=".65" marker-end="url(#arrow)"/>
+
+  <g fill="#e9e5da" stroke="#c9c9bf" stroke-width="2">
+    <rect x="160" y="552" width="360" height="60"/>
+    <rect x="600" y="552" width="360" height="60"/>
+  </g>
+  <path d="M560 552v60" stroke="#c9c9bf" stroke-width="2"/>
+  <g font-family="DM Mono,monospace">
+    <text x="184" y="576" fill="#ad442d" font-size="10" letter-spacing="1.2">COORDINATION</text>
+    <text x="184" y="596" fill="#1e302f" font-size="12">Selects one primary updater</text>
+    <text x="624" y="576" fill="#ad442d" font-size="10" letter-spacing="1.2">PRICE LOOKUP</text>
+    <text x="624" y="596" fill="#1e302f" font-size="12">Replicated key-value store</text>
+  </g>
+  <text x="560" y="675" text-anchor="middle" fill="#5d706c" font-family="DM Mono,monospace" font-size="11" letter-spacing=".5">BOTH JOBS STAY WARM · ONE WRITER PUBLISHES PRICES · THE COORDINATOR CAN PROMOTE THE SURVIVING REGION</text>
+</svg>
