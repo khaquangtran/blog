@@ -2,6 +2,7 @@ import {
   ArticleCallout,
   ArticleFigure,
   ArticleImage,
+  ArticleSignature,
   CodeBlock,
   InlineCode,
 } from './ArticleBlocks.jsx'
@@ -161,11 +162,7 @@ export function ArticleMarkdown({ markdown }) {
       )
     }
     if (block.type === 'signature')
-      return (
-        <p key={i} className="signature">
-          {block.text}
-        </p>
-      )
+      return <ArticleSignature key={i} name={block.text.replace(/^\s*[—–-]\s*/, '')} />
     if (block.type === 'callout')
       return (
         <ArticleCallout key={i} title="THE CORE IDEA">

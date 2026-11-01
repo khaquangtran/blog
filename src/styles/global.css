@@ -496,10 +496,6 @@
   .prose-section li {
     @apply py-[4px] px-0;
   }
-  .signature {
-    font: italic 19px var(--mono) !important;
-    color: var(--ink) !important;
-  }
   @media (max-width: 900px) {
     .site-shell {
       @apply py-0 px-[4.5%];
@@ -3226,6 +3222,23 @@
   }
   .article-page-v2 .article-reading .prose-section > h3 + p {
     @apply mt-0;
+  }
+  .article-page-v2 .article-signature {
+    @apply flex items-baseline gap-[8px];
+    @apply mt-[28px] mx-0 mb-0;
+    @apply pt-[15px];
+    @apply border-t border-line;
+  }
+  .article-page-v2 .article-signature-mark {
+    @apply inline-block text-accent;
+    @apply [font:italic_400_27px/0.8_Georgia,_'Times_New_Roman',_serif];
+    @apply [transform:rotate(-12deg)];
+  }
+  .article-page-v2 .article-signature-name {
+    @apply inline-block text-ink;
+    @apply [font:italic_500_26px/1.1_Georgia,_'Times_New_Roman',_serif];
+    @apply tracking-[-0.055em];
+    @apply [transform:rotate(-3deg)];
   }
   .article-page-v2 .article-reading .prose-section code.article-inline-code {
     @apply relative inline rounded-[4px] border;

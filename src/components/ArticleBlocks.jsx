@@ -58,6 +58,17 @@ export function ArticleCallout({ title = 'NOTE', children }) {
   )
 }
 
+export function ArticleSignature({ name }) {
+  return (
+    <p className="article-signature">
+      <span className="article-signature-mark" aria-hidden="true">
+        —
+      </span>
+      <span className="article-signature-name">{name}</span>
+    </p>
+  )
+}
+
 function FigureHeader({ eyebrow, label }) {
   if (!eyebrow && !label) return null
   return (
