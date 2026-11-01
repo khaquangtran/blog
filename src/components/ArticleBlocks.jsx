@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react'
 import { CopyCommand } from './CopyCommand.jsx'
 
+export function InlineCode({ children, className = '' }) {
+  return <code className={`article-inline-code ${className}`.trim()}>{children}</code>
+}
+
 export function CodeBlock({ code, language = 'TEXT', label = 'CODE' }) {
   return (
     <figure className="article-code">

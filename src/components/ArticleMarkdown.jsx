@@ -1,4 +1,10 @@
-import { ArticleCallout, ArticleFigure, ArticleImage, CodeBlock } from './ArticleBlocks.jsx'
+import {
+  ArticleCallout,
+  ArticleFigure,
+  ArticleImage,
+  CodeBlock,
+  InlineCode,
+} from './ArticleBlocks.jsx'
 import { ArrowUpRight } from 'lucide-react'
 
 export function headingId(text) {
@@ -23,7 +29,7 @@ function inline(text, keyPrefix = 'inline') {
     if (part.startsWith('**') && part.endsWith('**'))
       return <strong key={`${keyPrefix}-${index}`}>{part.slice(2, -2)}</strong>
     if (part.startsWith('`') && part.endsWith('`'))
-      return <code key={`${keyPrefix}-${index}`}>{part.slice(1, -1)}</code>
+      return <InlineCode key={`${keyPrefix}-${index}`}>{part.slice(1, -1)}</InlineCode>
     const link = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/)
     if (link)
       return (
@@ -177,10 +183,29 @@ export function ArticleMarkdown({ markdown }) {
     }
     if (block.type === 'list')
       return (
-        <ul key={i} className="article-takeaways">
-          {block.items.map((item, itemIndex) => (
-            <li key={itemIndex}>{inline(item, `li${i}-${itemIndex}`)}</li>
-          ))}
+        <ul
+          key={i}
+          className={`article-takeaways${block.items.length >= 4 ? ' article-takeaways--cards' : ''}`}
+        >
+          {block.items.map((item, itemIndex) => {
+            const lead = item.match(/^\*\*(.+?)\*\*\s*(.*)$/)
+
+            return (
+              <li key={itemIndex}>
+                <span className="takeaway-number" aria-hidden="true">
+                  {String(itemIndex + 1).padStart(2, '0')}
+                </span>
+                {lead ? (
+                  <div className="takeaway-copy">
+                    <strong>{lead[1]}</strong>
+                    <p>{inline(lead[2], `li${i}-${itemIndex}`)}</p>
+                  </div>
+                ) : (
+                  <div className="takeaway-copy">{inline(item, `li${i}-${itemIndex}`)}</div>
+                )}
+              </li>
+            )
+          })}
         </ul>
       )
     return <p key={i}>{inline(block.text, `p${i}`)}</p>

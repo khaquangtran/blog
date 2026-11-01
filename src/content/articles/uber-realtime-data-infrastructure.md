@@ -44,9 +44,9 @@ The authors group the requirements as consistency, availability, freshness, quer
 
 The main data path in the paper has three core systems:
 
-1. **Kafka** accepts and distributes events between producers and consumers.
-2. **Flink** applies stateful or stateless computation to those streams.
-3. **Pinot** indexes recent data so users can run low-latency analytical queries.
+- **Kafka.** accepts and distributes events between producers and consumers.
+- **Flink.** applies stateful or stateless computation to those streams.
+- **Pinot.** indexes recent data so users can run low-latency analytical queries.
 
 Raw streams are also archived to **HDFS**, compacted into columnar files such as Parquet, and used for historical analysis and replay. **Presto** provides an interactive SQL route into Pinot. Around these engines, the paper describes APIs, metadata, job management, monitoring, and operational tooling. The platform story is as much about those boundaries as it is about the engines themselves.
 
