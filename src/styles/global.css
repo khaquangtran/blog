@@ -143,7 +143,9 @@
     @apply text-accent;
   }
   .brand-mark {
-    @apply hidden;
+    @apply block;
+    @apply w-[50px] h-[28px];
+    @apply object-contain;
   }
   .nav {
     @apply flex;
@@ -541,12 +543,9 @@
       @apply justify-center;
       @apply gap-0;
     }
-    .brand-wordmark {
-      @apply hidden;
-    }
     .brand-mark {
       @apply block;
-      @apply w-[30px] h-[30px];
+      @apply w-[52px] h-[26px];
     }
     .nav {
       @apply hidden;

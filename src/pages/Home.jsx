@@ -32,7 +32,7 @@ export function Home() {
           inLanguage: 'en',
         }}
       />
-      <section className="hero hero-journal hero-network">
+{/*      <section className="hero hero-journal hero-network">
         <div className="hero-network-topline">
           <div className="hero-kicker">
             <span className="kicker-line" />
@@ -77,7 +77,7 @@ export function Home() {
             THINK CLEARLY · BUILD THINGS THAT LAST <b>↘</b>
           </span>
         </div>
-      </section>
+      </section>*/}
       <section className="featured-section">
         <div className="section-heading">
           <div>
