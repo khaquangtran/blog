@@ -3089,6 +3089,21 @@
     @apply pt-[34px];
     @apply pb-[80px];
   }
+  .reading-progress {
+    @apply fixed;
+    @apply top-0 left-0;
+    @apply z-[20];
+    @apply w-full h-[2px];
+    @apply bg-line;
+    @apply pointer-events-none;
+  }
+  .reading-progress > span {
+    @apply block;
+    @apply w-full h-full;
+    @apply origin-left;
+    @apply bg-accent;
+    @apply [will-change:transform];
+  }
   .article-page-v2 .article-detail {
     @apply max-w-[1080px];
   }

@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import { articles } from '../data/articles.js'
@@ -7,6 +8,31 @@ import { ArticleMarkdown, getMarkdownHeadings } from '../components/ArticleMarkd
 import { ArticleToc } from '../components/ArticleToc.jsx'
 import { getArticleDocument } from '../data/articleContent.js'
 import { Seo } from '../components/Seo.jsx'
+
+function ReadingProgress() {
+  const [progress, setProgress] = useState(0)
+
+  useEffect(() => {
+    let frame = 0
+    const update = () => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(() => {
+        const scrollable = document.documentElement.scrollHeight - window.innerHeight
+        setProgress(scrollable > 0 ? (window.scrollY / scrollable) * 100 : 0)
+      })
+    }
+    update()
+    window.addEventListener('scroll', update, { passive: true })
+    window.addEventListener('resize', update)
+    return () => {
+      cancelAnimationFrame(frame)
+      window.removeEventListener('scroll', update)
+      window.removeEventListener('resize', update)
+    }
+  }, [])
+
+  return <div className="reading-progress" role="progressbar" aria-label="Article reading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow={Math.round(progress)}><span style={{ transform: `scaleX(${progress / 100})` }} /></div>
+}
 
 export function ArticlePage() {
   const { id } = useParams()
@@ -61,6 +87,7 @@ export function ArticlePage() {
 
   return (
     <main className="article-page article-page-v2">
+      <ReadingProgress />
       <Seo
         title={articleDetails.title}
         description={articleDetails.desc}
